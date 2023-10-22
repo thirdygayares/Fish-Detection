@@ -1,0 +1,339 @@
+package com.m.motion_2;
+
+import android.annotation.SuppressLint;
+import android.app.ProgressDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.EditText;
+import android.widget.TextView;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.List;
+public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.ViewHolder> {
+
+    private Context context;
+    private List<FishCountModel> fishCountList;
+
+    public FishCountAdapter(Context context, List<FishCountModel> fishCountList) {
+        this.context = context;
+        this.fishCountList = fishCountList;
+    }
+
+    @NonNull
+    @Override
+    public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.your_list_item_layout, parent, false);
+        return new ViewHolder(view);
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, @SuppressLint("RecyclerView") int position) {
+        FishCountModel fishCountModel = fishCountList.get(position);
+
+        // Set the tank name and timestamp in their respective TextViews
+        holder.setTankName("Tank name: " + fishCountModel.getTankName());
+        holder.setTimestamp("Time Stamp: " + fishCountModel.getTimestamp());
+
+        // Set the integer fish count directly in the TextView
+        holder.setFishCount("Fish count: " + fishCountModel.getFishCount());
+
+        holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                // Show an alert dialog with "Rename" and "Delete" options
+                showOptionsDialog(position);
+                return true;
+            }
+        });
+    }
+
+    private void showOptionsDialog(int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Options");
+        builder.setItems(new CharSequence[]{"Rename", "Delete"}, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                switch (which) {
+                    case 0:
+                        showRenameProgressDialog(position);
+                        break;
+                    case 1:
+                        showDeleteProgressDialog(position);
+                        break;
+                }
+            }
+        });
+
+        builder.create().show();
+    }
+
+    private void showRenameProgressDialog(final int position) {
+        final ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Renaming Tank...");
+        progressDialog.show();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Rename Tank");
+
+        final EditText newTankNameInput = new EditText(context);
+        newTankNameInput.setHint("Enter New Tank Name");
+        builder.setView(newTankNameInput);
+
+        builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newTankName = newTankNameInput.getText().toString().trim();
+                if (!newTankName.isEmpty()) {
+                    // Get the old tank name
+                    FishCountModel fishCountModel = fishCountList.get(position);
+                    String oldTankName = fishCountModel.getTankName();
+
+                    // Create a Firebase reference to the "tank" node
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference tankRef = database.getReference("tank");
+
+                    // Query for the tank to rename based on oldTankName
+                    tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                                // Update the "tankName" field with the newTankName
+                                tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        // Successfully renamed the tank by tankName
+                                        progressDialog.dismiss();
+                                        notifyDataSetChanged();
+                                        // Dismiss the progress dialog
+                                        // You may also want to update the UI or the data source to reflect the new tank name.
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                                        // Handle the error if the renaming fails
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                            // Handle any errors or onCancelled events
+                        }
+                    });
+                } else {
+                    progressDialog.dismiss(); // Dismiss the progress dialog if renaming is not performed
+                    Toast.makeText(context, "New tank name is required", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                progressDialog.dismiss(); // Dismiss the progress dialog if renaming is canceled
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
+
+    private void showDeleteProgressDialog(final int position) {
+        final ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Deleting Tank...");
+        progressDialog.show();
+
+        // Get the tank name of the tank you want to delete
+        FishCountModel fishCountModel = fishCountList.get(position);
+        String tankNameToDelete = fishCountModel.getTankName();
+
+        // Create a Firebase reference to the "tank" node
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference tankRef = database.getReference("tank");
+
+        // Query for the tank to delete based on tankName
+        tankRef.orderByChild("tankName").equalTo(tankNameToDelete).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                    // Remove the matching tank node
+                    tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            progressDialog.dismiss();
+                            notifyDataSetChanged();// Dismiss the progress dialog
+                            // Successfully deleted the tank by tankName
+                            // You may also want to update the UI or the data source to reflect the deletion.
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                            // Handle the error if the deletion fails
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                // Handle any errors or onCancelled events
+            }
+        });
+    }
+
+    private void deleteItem(int position) {
+        // Get the tank name of the tank you want to delete
+        FishCountModel fishCountModel = fishCountList.get(position);
+        String tankNameToDelete = fishCountModel.getTankName();
+
+        // Create a Firebase reference to the "tank" node
+        FirebaseDatabase database = FirebaseDatabase.getInstance();
+        DatabaseReference tankRef = database.getReference("tank");
+
+        // Query for the tank to delete based on tankName
+        tankRef.orderByChild("tankName").equalTo(tankNameToDelete).addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                    // Remove the matching tank node
+                    tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                        @Override
+                        public void onSuccess(Void aVoid) {
+                            // Successfully deleted the tank by tankName
+                        }
+                    }).addOnFailureListener(new OnFailureListener() {
+                        @Override
+                        public void onFailure(@NonNull Exception e) {
+                            // Handle the error if the deletion fails
+                        }
+                    });
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+                // Handle any errors or onCancelled events
+            }
+        });
+    }
+
+
+    private void renameTankName(final int position) {
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Rename Tank");
+
+        final EditText newTankNameInput = new EditText(context);
+        newTankNameInput.setHint("Enter New Tank Name");
+        builder.setView(newTankNameInput);
+
+        builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newTankName = newTankNameInput.getText().toString().trim();
+                if (!newTankName.isEmpty()) {
+                    // Get the old tank name
+                    FishCountModel fishCountModel = fishCountList.get(position);
+                    String oldTankName = fishCountModel.getTankName();
+
+                    // Create a Firebase reference to the "tank" node
+                    FirebaseDatabase database = FirebaseDatabase.getInstance();
+                    DatabaseReference tankRef = database.getReference("tank");
+
+                    // Query for the tank to rename based on oldTankName
+                    tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                                // Update the "tankName" field with the newTankName
+                                tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        // Successfully renamed the tank by tankName
+                                        // You may also want to update the UI or the data source to reflect the new tank name.
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        // Handle the error if the renaming fails
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            // Handle any errors or onCancelled events
+                        }
+                    });
+                } else {
+                    Toast.makeText(context, "New tank name is required", Toast.LENGTH_SHORT).show();
+                }
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
+
+
+    @Override
+    public int getItemCount() {
+        return fishCountList.size();
+    }
+
+    public void filterList(List<FishCountModel> filteredList) {
+        fishCountList = filteredList;
+        notifyDataSetChanged();
+    }
+
+    public class ViewHolder extends RecyclerView.ViewHolder {
+        private TextView fishCountTextView;
+        private TextView timestampTextView;
+        private TextView tankNameTextView;
+
+        public ViewHolder(@NonNull View itemView) {
+            super(itemView);
+            fishCountTextView = itemView.findViewById(R.id.fishCountTextView);
+            timestampTextView = itemView.findViewById(R.id.dateAndTimeTextView);
+            tankNameTextView = itemView.findViewById(R.id.tankNameTextView);
+        }
+
+        public void setFishCount(String fishCount) {
+            fishCountTextView.setText(fishCount);
+        }
+
+        public void setTimestamp(String timestamp) {
+            timestampTextView.setText(timestamp);
+        }
+
+        public void setTankName(String tankName) {
+            tankNameTextView.setText(tankName);
+        }
+    }
+}

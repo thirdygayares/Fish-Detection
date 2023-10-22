@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:gravity="center"
+    android:background="@color/blue1">
+
+
+    <RelativeLayout
+        android:layout_width="375dp"
+        android:layout_height="650dp"
+        android:background="#192655">
+
+        <TextView
+            android:id="@+id/first"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textColor="@color/white"
+            android:layout_marginTop="10dp"
+            android:fontFamily="@font/century_gothic"
+            android:textSize="25dp"
+            android:layout_marginStart="25dp"
+            android:text="Aquarium List"/>
+        <androidx.cardview.widget.CardView
+            android:layout_below="@+id/first"
+            android:layout_width="200dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginStart="10dp"
+            app:cardCornerRadius="20dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="@color/white">
+                <EditText
+                    android:id="@+id/search"
+                    android:layout_width="250dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="5dp"
+                    android:textColor="@color/black"
+                    android:hint="Search Tank Name">
+                </EditText>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:id="@+id/card1"
+            android:layout_below="@+id/first"
+            android:layout_width="100dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginRight="15dp"
+            android:layout_alignParentEnd="true"
+            app:cardCornerRadius="20dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@color/white">
+                <Spinner
+                    android:id="@+id/Spinner"
+                    android:layout_width="wrap_content"
+                    android:layout_height="50dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+        <androidx.cardview.widget.CardView
+            android:layout_below="@+id/card1"
+            android:layout_width="350dp"
+            android:layout_centerHorizontal="true"
+            android:layout_marginTop="25dp"
+            app:cardCornerRadius="20dp"
+            android:layout_height="wrap_content">
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="500dp"
+                android:background="@color/white">
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerTank"
+                    android:layout_width="match_parent"
+                    android:layout_height="500dp"/>
+            </LinearLayout>
+        </androidx.cardview.widget.CardView>
+
+    </RelativeLayout>
+</LinearLayout>

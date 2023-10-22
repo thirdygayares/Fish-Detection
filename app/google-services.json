@@ -1,0 +1,30 @@
+{
+  "project_info": {
+    "project_number": "185136443131",
+    "firebase_url": "https://motion-c36ac-default-rtdb.firebaseio.com",
+    "project_id": "motion-c36ac",
+    "storage_bucket": "motion-c36ac.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:185136443131:android:0843c0048cca7157054a5e",
+        "android_client_info": {
+          "package_name": "com.m.motion_2"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBMwcPr3O7mNw3Q3oPkET3QFzLopBiV7tI"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

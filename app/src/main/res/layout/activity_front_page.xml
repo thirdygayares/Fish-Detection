@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@drawable/front"
+    tools:context=".front_page">
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:gravity="center"
+        android:layout_marginTop="50dp"
+        android:layout_gravity="center"
+        android:orientation="vertical">
+        <ImageView
+            android:layout_width="200dp"
+            android:layout_height="200dp"
+            android:src="@drawable/logofin"/>
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginTop="20dp">
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/count_fish"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/oblong_btn"
+                android:layout_centerHorizontal="true"
+                android:textColor="@color/white"
+                android:fontFamily="@font/century_gothic"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textSize="20dp"
+                android:text="Count fish"/>
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/tank_list"
+                android:layout_width="250dp"
+                android:layout_height="wrap_content"
+                android:background="@drawable/oblong_btn"
+                android:layout_centerHorizontal="true"
+                android:layout_below="@id/count_fish"
+                android:layout_marginTop="25dp"
+                android:textColor="@color/white"
+                android:fontFamily="@font/century_gothic"
+                android:textStyle="bold"
+                android:textAllCaps="false"
+                android:textSize="20dp"
+                android:text="Tank list"/>
+
+            <TextView
+                android:id="@+id/logout"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_below="@id/tank_list"
+                android:layout_marginTop="25dp"
+                android:textColor="@color/white"
+                android:textSize="18dp"
+                android:textStyle="bold"
+                android:fontFamily="@font/century_gothic"
+                android:layout_marginBottom="20dp"
+                android:layout_centerHorizontal="true"
+                android:text="Logout"/>
+
+        </RelativeLayout>
+    </LinearLayout>
+</androidx.core.widget.NestedScrollView>
