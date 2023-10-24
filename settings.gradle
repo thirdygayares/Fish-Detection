@@ -16,6 +16,4 @@ dependencyResolutionManagement {
 }
 rootProject.name = "Motion_2"
 include ':app'
-include ':Opencv'
-include ':Opencv34'
-include ':Opencv'
+include ':OpenCv'

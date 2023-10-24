@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="16dp"
+    android:background="@color/blue1">
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/saveButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Save"
+        android:textSize="15sp"
+        android:fontFamily="@font/century_gothic"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@color/blue"
+        android:padding="8dp"
+        android:gravity="center"
+        android:layout_marginEnd="8dp" />
+
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/tryAgainButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:text="Try Again"
+        android:textSize="15sp"
+        android:fontFamily="@font/century_gothic"
+        android:textAllCaps="false"
+        android:textStyle="bold"
+        android:textColor="@color/white"
+        android:background="@color/blue"
+        android:padding="8dp"
+        android:gravity="center"
+        android:layout_marginEnd="8dp" />
+    <androidx.appcompat.widget.AppCompatButton
+        android:id="@+id/cancelButton"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:textStyle="bold"
+        android:fontFamily="@font/century_gothic"
+        android:textSize="15sp"
+        android:textAllCaps="false"
+        android:text="Cancel"
+        android:textColor="@color/white"
+        android:background="@color/blue"
+        android:padding="8dp"
+        android:gravity="center" />
+</LinearLayout>

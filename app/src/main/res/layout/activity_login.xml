@@ -4,7 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="@drawable/login_page"
+    android:background="@drawable/login23"
     tools:context=".login">
 
 
@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:layout_marginTop="140dp"
+        android:layout_marginTop="170dp"
         android:layout_gravity="center"
         android:orientation="vertical">
 

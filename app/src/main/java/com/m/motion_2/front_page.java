@@ -21,7 +21,7 @@ import android.widget.TextView;
 import com.google.firebase.auth.FirebaseAuth;
 
 public class front_page extends AppCompatActivity {
-    AppCompatButton count_fish,tank;
+    AppCompatButton count_fish,tank,archive;
     TextView logout;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +37,7 @@ public class front_page extends AppCompatActivity {
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PackageManager.PERMISSION_GRANTED);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         count_fish = findViewById(R.id.count_fish);
+        archive = findViewById(R.id.archive_tank);
         tank = findViewById(R.id.tank_list);
 //        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
 //            Intent intent = new Intent();
@@ -83,6 +84,16 @@ public class front_page extends AppCompatActivity {
                 // Show the AlertDialog
                 AlertDialog dialog = builder.create();
                 dialog.show();
+            }
+        });
+
+        archive.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = new Intent(getApplicationContext(),Fish_count_list2.class);
+                startActivity(i);
+                overridePendingTransition(0,0);
+                finish();
             }
         });
 

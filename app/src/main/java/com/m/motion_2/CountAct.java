@@ -13,7 +13,9 @@ import android.os.Handler;
 import android.os.PowerManager;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.Gravity;
 import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageButton;
@@ -29,6 +31,10 @@ import androidx.core.content.ContextCompat;
 
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.OnClickListener;
+import com.orhanobut.dialogplus.OnDismissListener;
+import com.orhanobut.dialogplus.ViewHolder;
 
 import org.opencv.android.CameraBridgeViewBase;
 import org.opencv.android.JavaCameraView;
@@ -298,61 +304,68 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
         return rgba;
     }
     private void showFishCountDialog(final int fishCount) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Fish Count");
-        builder.setMessage("The accurate number of fish is: " + fishCount);
+        View contentView = getLayoutInflater().inflate(R.layout.custom_fish_count_dialog, null);
+        TextView fishCountTextView = contentView.findViewById(R.id.fishCountTextView);
+        EditText tankNameInput = contentView.findViewById(R.id.tankNameInput);
+        fishCountTextView.setText(String.valueOf(fishCount));
+        DialogPlus dialog = DialogPlus.newDialog(this)
+                .setContentHolder(new ViewHolder(contentView))
+                .setHeader(R.layout.dialog_header)
+                .setFooter(R.layout.dialog_footer)
+                .setGravity(Gravity.CENTER)
+                .setCancelable(false)
+                .setExpanded(false)
+                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setOnDismissListener(new OnDismissListener() {
+                    @Override
+                    public void onDismiss(DialogPlus dialog) {
+                        // Add any code to handle dialog dismissal
+                    }
+                })
+                .setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(DialogPlus dialog, View view) {
+                        if (view.getId() == R.id.saveButton) {
+                            String tankName = tankNameInput.getText().toString().trim();
+                            if (!tankName.isEmpty()) {
+                                // Get the current date and time
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+                                String currentDateTime = dateFormat.format(new Date());
 
-        final EditText tankNameInput = new EditText(this);
-        tankNameInput.setHint("Enter Tank Name");
-        builder.setView(tankNameInput);
+                                // Create a Firebase reference to the "tank" node
+                                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                                DatabaseReference tankRef = database.getReference("tank");
 
-        builder.setPositiveButton("Save to Tank", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String tankName = tankNameInput.getText().toString().trim();
-                if (!tankName.isEmpty()) {
-                    // Get the current date and time
-                    SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
-                    String currentDateTime = dateFormat.format(new Date());
+                                // Set the fish count, tank name, and timestamp as child values in a single node
+                                DatabaseReference newFishCountRef = tankRef.push();
+                                newFishCountRef.child("tankName").setValue(tankName);
+                                newFishCountRef.child("fishCount").setValue(fishCount);
+                                newFishCountRef.child("timeStamp").setValue(currentDateTime);
 
-                    // Create a Firebase reference to the "tank" node
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference tankRef = database.getReference("tank");
+                                // Show a success toast message
+                                Toast.makeText(getApplicationContext(), "Fish count saved successfully in tank name: " + tankName, Toast.LENGTH_SHORT).show();
 
-                    // Set the fish count, tank name, and timestamp as child values in a single node
-                    DatabaseReference newFishCountRef = tankRef.push();
-                    newFishCountRef.child("tankName").setValue(tankName);
-                    newFishCountRef.child("fishCount").setValue(fishCount);
-                    newFishCountRef.child("timeStamp").setValue(currentDateTime);
+                                dialog.dismiss(); // Close the dialog after saving
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
+                            }
+                        } else if (view.getId() == R.id.tryAgainButton) {
+                            // Add your "Try Again" logic here
+                            Intent i = new Intent(getApplicationContext(), CountAct.class);
+                            startActivity(i);
+                            overridePendingTransition(0, 0);
+                            finish();
+                        } else if (view.getId() == R.id.cancelButton) {
+                            dialog.dismiss(); // Close the dialog if the "Cancel" button is clicked
+                        }
+                    }
+                })
+                .create();
 
-                    // Show a success toast message
-                    Toast.makeText(getApplicationContext(), "Fish count saved successfully in tank name: " + tankName, Toast.LENGTH_SHORT).show();
-                } else {
-                    Toast.makeText(getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-        builder.setNegativeButton("Try Again", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // Add your "Try Again" logic here
-                Intent i = new Intent(getApplicationContext(), CountAct.class);
-                startActivity(i);
-                overridePendingTransition(0, 0);
-                finish();
-            }
-        });
-
-        builder.setNeutralButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        AlertDialog shapeAlertDialog = builder.create();
-        shapeAlertDialog.show();
+        dialog.show();
     }
+
 
 
     @Override
