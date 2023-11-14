@@ -1,4 +1,5 @@
 package com.m.motion_2;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,14 +20,23 @@ import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class front_page extends AppCompatActivity {
     AppCompatButton count_fish,tank,archive;
+    private DatabaseReference databaseReference;
     TextView logout;
+    private List<FishCountModel> fishCountList;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        startService(new Intent(getApplicationContext(), MyService.class));
         setContentView(R.layout.activity_front_page);
         logout = findViewById(R.id.logout);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -49,8 +59,35 @@ public class front_page extends AppCompatActivity {
 //                startService(new Intent(getApplicationContext(), MyService.class));
 //                startActivity(intent);
 //            }
-//        }
+        fishCountList = new ArrayList<>();
         showWarning();
+        databaseReference = FirebaseDatabase.getInstance().getReference("tank");
+        databaseReference.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                fishCountList.clear();
+                for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
+                    FishCountModel fishCountModel = snapshot.getValue(FishCountModel.class);
+                    fishCountList.add(fishCountModel);
+                }
+
+                // Check if there is data
+                if (!fishCountList.isEmpty()) {
+                    // Start the service if there is data
+                    startService(new Intent(getApplicationContext(), MyService.class));
+                } else {
+                    // Send a broadcast to the service to clear the notification
+                    Intent clearNotificationIntent = new Intent("CLEAR_NOTIFICATION_ACTION");
+                    sendBroadcast(clearNotificationIntent);
+                    stopService(new Intent(getApplicationContext(), MyService.class));
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError error) {
+                // Handle the error
+            }
+        });
 
         count_fish.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -101,7 +138,6 @@ public class front_page extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 Intent i = new Intent(getApplicationContext(),Fish_count_list.class);
-                startService(new Intent(getApplicationContext(),MyService.class));
                 startActivity(i);
                 overridePendingTransition(0,0);
                 finish();

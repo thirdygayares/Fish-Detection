@@ -59,7 +59,6 @@ public class Fish_count_list extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fish_count_list);
-        startService(new Intent(getApplicationContext(), MyService.class));
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
@@ -267,9 +266,11 @@ public class Fish_count_list extends AppCompatActivity {
     }
 
     private String convertFishCountModelToJson(FishCountModel fishCountModel) {
-
-        Gson gson = new Gson();
-        return gson.toJson(fishCountModel);
+        // Format the tank data as a string
+        String tankData = "Tank Name: " + fishCountModel.getTankName() +
+                " ; Fish Count: " + fishCountModel.getFishCount() +
+                " ; TimeStamp: " + fishCountModel.getTimestamp();
+        return tankData;
     }
 
     private void uploadDataToFirebaseStorage(byte[] data, String storagePath) {

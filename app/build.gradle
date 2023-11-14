@@ -39,7 +39,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-auth:21.0.3'
     implementation 'com.google.firebase:firebase-database-ktx:20.2.2'
     implementation 'com.google.firebase:firebase-storage-ktx:20.2.1'
-    implementation project(path: ':OpenCv')
+    implementation project(path: ':OpenCv23')
     testImplementation 'junit:junit:4.13.2'
     implementation 'com.airbnb.android:lottie:3.6.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

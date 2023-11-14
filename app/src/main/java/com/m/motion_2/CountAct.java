@@ -215,47 +215,43 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
         for (MatOfPoint contour : contours) {
             double area = Imgproc.contourArea(contour);
             if (area > minFishSize && area < maxFishSize) {
-                MatOfPoint2f approxCurve = new MatOfPoint2f();
-                MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
-                double epsilon = 0.04 * Imgproc.arcLength(contour2f, true);
-                Imgproc.approxPolyDP(contour2f, approxCurve, epsilon, true);
+                // Calculate the average color of the fish
+                Scalar color = calculateAverageColor(image, contour, true);
 
-                int vertices = (int) approxCurve.total();
-                if (vertices == 4) {
-                    // Check if the contour has 4 vertices (a square)
-                    // This is not a fish, so skip it
-                    continue;
-                } else if (vertices == 3) {
-                    // Check if the contour has 3 vertices (a triangle)
-                    // This is not a fish, so skip it
-                    continue;
-                } else {
-                    // Calculate the average color of the fish
-                    Scalar color = calculateAverageColor(image, contour);
-
-                    // Draw the contour on the original image using the color
-                    Imgproc.drawContours(image, contours, contours.indexOf(contour), color, 2);
-                    fishCount++;
-                }
+                // Draw the contour on the original image using the color
+                Imgproc.drawContours(image, contours, contours.indexOf(contour), color, 2);
+                fishCount++;
             }
         }
 
         // Update the previous frame with the current frame
         grayImage.copyTo(prevFrame);
-
     }
 
 
-    private Scalar calculateAverageColor(Mat image, MatOfPoint contour) {
-        Mat mask = Mat.zeros(image.size(), CvType.CV_8U);
-        List<MatOfPoint> contours = new ArrayList<>();
-        contours.add(contour);
-        Imgproc.drawContours(mask, contours, 0, new Scalar(0, 255, 0), 5); // Green color
+    private Scalar calculateAverageColor(Mat image, MatOfPoint contour, boolean countFish) {
+        if (countFish) {
+            Mat mask = Mat.zeros(image.size(), CvType.CV_8U);
+            List<MatOfPoint> contours = new ArrayList<>();
+            contours.add(contour);
+            Imgproc.drawContours(mask, contours, 0, new Scalar(255), -1); // Fill the contour with white
 
-        Scalar meanColor = Core.mean(image, mask);
+            Scalar meanColor = Core.mean(image, mask);
 
-        return meanColor;
+            double area = Imgproc.contourArea(contour);
+            if (area > minFishSize && area < maxFishSize) {
+                fishCount++;
+            }
+
+            return meanColor;
+        } else {
+            // Return black color when countFish is false
+            return new Scalar(0, 0, 0);
+        }
     }
+
+
+
     @Override
     public void onCameraViewStarted(int width, int height) {
         // Initialize any image processing parameters here if needed
