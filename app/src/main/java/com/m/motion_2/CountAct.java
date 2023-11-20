@@ -44,6 +44,7 @@ import org.opencv.core.CvType;
 import org.opencv.core.Mat;
 import org.opencv.core.MatOfPoint;
 import org.opencv.core.MatOfPoint2f;
+import org.opencv.core.Rect;
 import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 
@@ -55,6 +56,10 @@ import java.util.Locale;
 
 public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.CvCameraViewListener2 {
     private Mat prevFrame;
+    private long prevTimeMillis = 0;
+    private int frameCount = 0;
+    private TextView fpsTextView;
+
     private boolean dialogShown = false; // Add this flag
 //    TextView textView;
     private AlertDialog shapeAlertDialog;
@@ -79,7 +84,7 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
     private boolean conditionToStopScheduledDialog = false;
     private int zoomLevel = 0;
     private CameraBridgeViewBase.CvCameraViewListener2 cameraListener;
-
+    private TextView accuracyTextView;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +92,7 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 //        textView = findViewById(R.id.fishCount);
         back = findViewById(R.id.back);
         refresh = findViewById(R.id.refresh);
+        fpsTextView = findViewById(R.id.fpsTextView);
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PackageManager.PERMISSION_GRANTED);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
@@ -96,9 +102,12 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             actionBar.hide();
         }
         cameraView = findViewById(R.id.object);
+        accuracyTextView = findViewById(R.id.accuracyTextView);
+        accuracyTextView.setVisibility(View.VISIBLE);
         cameraView.setVisibility(View.VISIBLE);
         cameraView.setCvCameraViewListener(this);
-
+        cameraView.setMaxFrameSize(640, 480);
+        cameraView.setCameraFpsRange(60000, 60000); // Set the frame rate range (in microseconds)
 
         ImageButton zoomInButton = findViewById(R.id.zoomInButton);
         ImageButton zoomOutButton = findViewById(R.id.zoomOutButton);
@@ -147,6 +156,8 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
                         Intent i = new Intent(getApplicationContext(), CountAct.class);
                         startActivity(i);
                         overridePendingTransition(0, 0);
+                        onCameraViewStopped();
+                        initializeCamera();
                         finish();
                     }
                 }, 2000); // 2000 milliseconds = 2 seconds
@@ -190,42 +201,66 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 
 
     private void countFish(Mat image) {
-        // Convert the image to grayscale for motion detection
         Mat grayImage = new Mat();
         Imgproc.cvtColor(image, grayImage, Imgproc.COLOR_BGR2GRAY);
-
+        List<MatOfPoint> contours = new ArrayList<>();
         if (prevFrame == null) {
-            // Initialize the previous frame if it's the first frame
             prevFrame = grayImage.clone();
         }
-
-        // Calculate the absolute difference between the current frame and the previous frame
         Mat frameDiff = new Mat();
         Core.absdiff(prevFrame, grayImage, frameDiff);
-
-        // Threshold the difference image to create a binary mask
         Mat mask = new Mat();
         Imgproc.threshold(frameDiff, mask, 30, 255, Imgproc.THRESH_BINARY);
-
-        // Find contours in the binary mask
-        List<MatOfPoint> contours = new ArrayList<>();
+        contours = new ArrayList<>();
         Imgproc.findContours(mask, contours, new Mat(), Imgproc.RETR_EXTERNAL, Imgproc.CHAIN_APPROX_SIMPLE);
 
-        // Iterate through the contours and filter out small and non-fish shapes
+        double totalFishArea = 0.0;
+        double totalFrameArea = image.size().height * image.size().width;
+
         for (MatOfPoint contour : contours) {
             double area = Imgproc.contourArea(contour);
             if (area > minFishSize && area < maxFishSize) {
-                // Calculate the average color of the fish
                 Scalar color = calculateAverageColor(image, contour, true);
-
-                // Draw the contour on the original image using the color
                 Imgproc.drawContours(image, contours, contours.indexOf(contour), color, 2);
-                fishCount++;
-            }
+                totalFishArea += area;
+
+                MatOfPoint2f approxCurve = new MatOfPoint2f();
+                MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+                double contourPerimeter = Imgproc.arcLength(contour2f, true);
+                Imgproc.approxPolyDP(contour2f, approxCurve, 0.04 * contourPerimeter, true);
+                int vertices = (int) approxCurve.total();
+
+                double circularity = 0.0;
+                if (vertices >= 3) {
+                    double contourArea = Imgproc.contourArea(contour);
+                    circularity = (4 * Math.PI * contourArea) / (contourPerimeter * contourPerimeter);
+
+                    if (circularity > 0.7) {
+                        Rect boundingRect = Imgproc.boundingRect(contour);
+                        Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), new Scalar(0, 255, 0), 2);
+                    }
+                }
+             }
+        }
+//calibration
+        if (totalFrameArea > 0) {
+            double fishPercentage = (totalFishArea / totalFrameArea) * 100;
+            updateFishPercentage(fishPercentage);
+        } else {
+            updateFishPercentage(0.0);
         }
 
-        // Update the previous frame with the current frame
         grayImage.copyTo(prevFrame);
+    }
+
+
+    private void updateFishPercentage(final double percentage) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                accuracyTextView.setText("Camera calibration: " + String.format(Locale.getDefault(), "%.2f", percentage) + "%");
+            }
+        });
     }
 
 
@@ -236,19 +271,28 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             contours.add(contour);
             Imgproc.drawContours(mask, contours, 0, new Scalar(255), -1); // Fill the contour with white
 
-            Scalar meanColor = Core.mean(image, mask);
-
             double area = Imgproc.contourArea(contour);
             if (area > minFishSize && area < maxFishSize) {
                 fishCount++;
-            }
+                Mat maskedImage = new Mat();
+                image.copyTo(maskedImage, mask);
+                Scalar meanColor = Core.mean(maskedImage);
+                if (meanColor.val[0] > 100 && meanColor.val[0] < 150
+                        && meanColor.val[1] > 50 && meanColor.val[1] < 200
+                        && meanColor.val[2] > 50 && meanColor.val[2] < 150) {
+                    // Get bounding rectangle for the contour
+                    Rect boundingRect = Imgproc.boundingRect(contour);
 
-            return meanColor;
-        } else {
-            // Return black color when countFish is false
-            return new Scalar(0, 0, 0);
+                    // Draw the bounding rectangle on the image
+                    Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), new Scalar(0, 0, 255), 3);
+                }
+
+                return new Scalar(0, 0, 255); // Placeholder color
+            }
         }
+        return new Scalar(0, 0, 0);
     }
+
 
 
 
@@ -259,7 +303,10 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 
     @Override
     public void onCameraViewStopped() {
-        // Release any resources used for image processing here
+        if (prevFrame != null) {
+            prevFrame.release();
+            prevFrame = null;
+        }
     }
 
     @Override
@@ -268,9 +315,31 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 
         // Reset the fish count for each frame
         fishCount = 0;
-
+        long currentTimeMillis = System.currentTimeMillis();
+        frameCount++;
         // Perform real-time image processing to detect fish
         countFish(rgba);
+
+        if (prevTimeMillis == 0) {
+            prevTimeMillis = currentTimeMillis;
+        } else {
+            long elapsedTime = currentTimeMillis - prevTimeMillis;
+            if (elapsedTime >= 1000) { // Update FPS every 1 second
+                double fps = (double) frameCount * 1000 / elapsedTime;
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if (fpsTextView != null) {
+                            fpsTextView.setText("FPS: " + String.format(Locale.getDefault(), "%.2f", fps));
+                        }
+                    }
+                });
+
+                // Reset counters
+                frameCount = 0;
+                prevTimeMillis = currentTimeMillis;
+            }
+        }
 
         runOnUiThread(new Runnable() {
             @Override
@@ -347,12 +416,14 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
                                 Toast.makeText(getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
                             }
                         } else if (view.getId() == R.id.tryAgainButton) {
-                            // Add your "Try Again" logic here
                             Intent i = new Intent(getApplicationContext(), CountAct.class);
                             startActivity(i);
                             overridePendingTransition(0, 0);
+                            onCameraViewStopped();
+                            initializeCamera();
                             finish();
                         } else if (view.getId() == R.id.cancelButton) {
+                            initializeCamera();
                             dialog.dismiss(); // Close the dialog if the "Cancel" button is clicked
                         }
                     }
@@ -394,9 +465,12 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
         }
     }
 
+
+
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        handler.removeCallbacksAndMessages(null);
         if (cameraView != null) {
             cameraView.disableView();
         }
