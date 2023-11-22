@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Activity;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AlertDialog;
@@ -10,21 +10,22 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.finquant.Class.FishCountModel;
+import com.finquant.Service.MyService;
+import com.m.motion_2.R;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -61,7 +62,17 @@ public class front_page extends AppCompatActivity {
 //            }
         fishCountList = new ArrayList<>();
         showWarning();
-        databaseReference = FirebaseDatabase.getInstance().getReference("tank");
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
+            databaseReference = userTanksRef;
+        } else {
+            Toast.makeText(getApplicationContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
+            Intent loginIntent = new Intent(getApplicationContext(), login.class);
+            startActivity(loginIntent);
+            finish(); // Optional: Close the current activity so users can't go back without login
+        }
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -70,13 +81,9 @@ public class front_page extends AppCompatActivity {
                     FishCountModel fishCountModel = snapshot.getValue(FishCountModel.class);
                     fishCountList.add(fishCountModel);
                 }
-
-                // Check if there is data
                 if (!fishCountList.isEmpty()) {
-                    // Start the service if there is data
                     startService(new Intent(getApplicationContext(), MyService.class));
                 } else {
-                    // Send a broadcast to the service to clear the notification
                     Intent clearNotificationIntent = new Intent("CLEAR_NOTIFICATION_ACTION");
                     sendBroadcast(clearNotificationIntent);
                     stopService(new Intent(getApplicationContext(), MyService.class));

@@ -18,8 +18,11 @@
         android:required="false" />
 
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
-    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
@@ -32,7 +35,7 @@
         android:theme="@style/Theme.Motion_2"
         tools:targetApi="31">
         <activity
-            android:name=".Fish_count_list2"
+            android:name="com.finquant.Activity.Fish_count_list2"
             android:exported="false">
             <meta-data
                 android:name="android.app.lib_name"
@@ -40,30 +43,30 @@
         </activity>
 
         <service
-            android:name=".MyService"
+            android:name="com.finquant.Service.MyService"
             android:enabled="true"
             android:exported="true" />
 
         <activity
-            android:name=".Register"
+            android:name="com.finquant.Activity.Register"
             android:exported="false" />
         <activity
-            android:name=".Fish_count_list"
+            android:name="com.finquant.Activity.Fish_count_list"
             android:exported="false" />
         <activity
-            android:name=".CountAct"
+            android:name="com.finquant.Activity.CountAct"
             android:exported="false" />
         <activity
-            android:name=".front_page"
+            android:name="com.finquant.Activity.front_page"
             android:exported="false" />
         <activity
-            android:name=".login"
+            android:name="com.finquant.Activity.login"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name="com.finquant.Activity.MainActivity"
             android:exported="false" />
         <activity
-            android:name=".SplashActivity"
+            android:name="com.finquant.Activity.SplashActivity"
             android:exported="true"
             android:screenOrientation="portrait"> <!-- Set screenOrientation to portrait -->
             <intent-filter>

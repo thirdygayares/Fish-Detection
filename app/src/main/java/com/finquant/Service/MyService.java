@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -9,6 +9,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
@@ -17,14 +18,17 @@ import android.util.Log;
 import androidx.annotation.NonNull;
 import androidx.core.app.NotificationCompat;
 
+import com.finquant.Activity.login;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.m.motion_2.R;
 
 import java.text.SimpleDateFormat;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
 
@@ -33,15 +37,9 @@ public class MyService extends Service {
     private boolean isTankReset = false;
     private static final int NOTIFICATION_ID = 1;
     private static final int DIARY_NOTIFICATION_ID = 2; // Unique notification ID for diary-related notifications
-   //for 7days
-//    private static final long INITIAL_DELAY = 7 * 24 * 60 * 60 * 1000;
-
-     //for 1 mins
-    private static final long INITIAL_DELAY = 1  * 60 * 1000;
-    private long remainingTimeMillis = INITIAL_DELAY;
-
+     private long remainingTimeMillis;
     private Handler handler = new Handler();
-    
+
     private BroadcastReceiver clearNotificationReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
@@ -76,6 +74,8 @@ public class MyService extends Service {
         return START_STICKY;  // Make the service sticky
     }
     private void scheduleTask() {
+        long initialDelay = calculateInitialDelay();
+        remainingTimeMillis = initialDelay;// Calculate initial delay based on user's locale
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
@@ -91,13 +91,44 @@ public class MyService extends Service {
                         handler.removeCallbacksAndMessages(null);
                     }
 
-                    // Schedule the task to run again after 15 minutes
-                    handler.postDelayed(this, INITIAL_DELAY);
+                    // Schedule the task to run again after the calculated initial delay
+                    handler.postDelayed(this, initialDelay);
                 } catch (Exception e) {
                     Log.e("MyService", "Error in scheduled task: " + e.getMessage());
                 }
             }
-        }, INITIAL_DELAY); // Initial delay of 7 days
+        }, initialDelay); // Initial delay based on user's locale
+    }
+
+    //7days
+
+//    private long calculateInitialDelay() {
+//        Locale userLocale = Locale.getDefault();
+//        long currentTimeMillis = System.currentTimeMillis();
+//        Calendar calendar = Calendar.getInstance(userLocale);
+//        calendar.setTimeInMillis(currentTimeMillis);
+//        calendar.add(Calendar.DAY_OF_WEEK, 6); // Adding 7 days
+//        //setHours
+//        calendar.set(Calendar.HOUR_OF_DAY,24);
+//        calendar.set(Calendar.MINUTE, 0);
+//        calendar.set(Calendar.SECOND, 0);
+//        long futureTriggerTimeMillis = calendar.getTimeInMillis();
+//        return futureTriggerTimeMillis - currentTimeMillis;
+//    }
+
+//1 days
+    private long calculateInitialDelay() {
+        Locale userLocale = Locale.getDefault();
+        long currentTimeMillis = System.currentTimeMillis();
+        Calendar calendar = Calendar.getInstance(userLocale);
+        calendar.setTimeInMillis(currentTimeMillis);
+        calendar.add(Calendar.DAY_OF_WEEK, 1);
+        //setHours
+        calendar.set(Calendar.HOUR_OF_DAY,0);
+        calendar.set(Calendar.MINUTE, 0);
+        calendar.set(Calendar.SECOND, 0);
+        long futureTriggerTimeMillis = calendar.getTimeInMillis();
+        return futureTriggerTimeMillis - currentTimeMillis;
     }
 
 
@@ -181,25 +212,21 @@ public class MyService extends Service {
                 .setContentTitle("FindQuant")
                 .setContentText("Running in the background")
                 .setSmallIcon(R.drawable.logofin);
-
-        // Make the notification persistent
         builder.setOngoing(true);
-
-        // Create a handler to update the notification at regular intervals
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {
             @Override
             public void run() {
-                // Update the content text with the remaining time
-                builder.setContentText("Reset in: " + formatRemainingTime(remainingTimeMillis));
-
-                // Notify the notification manager to update the notification
-                NotificationManager manager = getSystemService(NotificationManager.class);
-                manager.notify(NOTIFICATION_ID, builder.build());
-
-                // Update the remaining time and schedule the task to run again after 1 second
-                remainingTimeMillis -= 1000;
-                handler.postDelayed(this, 1000);
+                if (remainingTimeMillis <= 0) {
+                    builder.setContentText("Reset in: 00 days, 00 hours, 00 mins, 00 secs");
+                    handler.removeCallbacksAndMessages(null); // Stop the handler
+                } else {
+                    builder.setContentText("Reset in: " + formatRemainingTime(remainingTimeMillis));
+                    NotificationManager manager = getSystemService(NotificationManager.class);
+                    manager.notify(NOTIFICATION_ID, builder.build());
+                    remainingTimeMillis -= 1000;
+                    handler.postDelayed(this, 1000);
+                }
             }
         }, 1000);
 
@@ -207,14 +234,16 @@ public class MyService extends Service {
     }
 
 
+
     private String formatRemainingTime(long millis) {
         long seconds = millis / 1000;
         long minutes = seconds / 60;
         long hours = minutes / 60;
         long days = hours / 24;
-
-        return String.format(Locale.getDefault(), "%d days, %02d:%02d:%02d", days, hours % 24, minutes % 60, seconds % 60);
+        return String.format(Locale.getDefault(), "%d days, %02d hours, %02d mins, %02d secs",
+                days, hours % 24, minutes % 60, seconds % 60);
     }
+
     @Override
     public IBinder onBind(Intent intent) {
         // TODO: Return the communication channel to the service.

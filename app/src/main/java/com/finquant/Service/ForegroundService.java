@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Service;
 
 import android.app.Notification;
 import android.app.NotificationChannel;
@@ -11,6 +11,8 @@ import android.os.IBinder;
 
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
+
+import com.m.motion_2.R;
 
 public class ForegroundService extends Service {
     public ForegroundService() {

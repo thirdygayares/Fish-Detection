@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Adapter;
 
 import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
@@ -15,13 +15,17 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.finquant.Class.FishCountModel;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.m.motion_2.R;
 
 import java.util.List;
 public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.ViewHolder> {
@@ -65,7 +69,7 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
     private void showOptionsDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Options");
-        builder.setItems(new CharSequence[]{"Rename","Archive Tank"}, new DialogInterface.OnClickListener() {
+        builder.setItems(new CharSequence[]{"Rename", "Archive Tank"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -90,12 +94,12 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Archive Tank");
-        builder.setMessage("Are you sure you want to Archive Tank name: "+ TankName);
+        builder.setMessage("Are you sure you want to Archive Tank name: " + TankName);
 
         builder.setPositiveButton("Archive", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                archiveTank(position,progressDialog);
+                archiveTank(position, progressDialog);
             }
         });
 
@@ -117,42 +121,54 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         String tankNameToArchive = fishCountModel.getTankName();
         String timeStampToArchive = fishCountModel.getTimestamp();
         int fishCountToArchive = fishCountModel.getFishCount();
-        FirebaseDatabase sourceDatabase = FirebaseDatabase.getInstance();
-        DatabaseReference sourceTankRef = sourceDatabase.getReference("tank");
-        sourceTankRef.orderByChild("tankName").equalTo(tankNameToArchive)
-                .addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
-                            tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-                                @Override
-                                public void onSuccess(Void aVoid) {
-                                    FirebaseDatabase targetDatabase = FirebaseDatabase.getInstance();
-                                    DatabaseReference targetTankRef = targetDatabase.getReference("archived_tank");
-                                    DatabaseReference archivedTankRef = targetTankRef.push();
-                                    archivedTankRef.child("fishCount").setValue(fishCountToArchive);
-                                    archivedTankRef.child("tankName").setValue(tankNameToArchive);
-                                    archivedTankRef.child("timeStamp").setValue(timeStampToArchive);
-                                    notifyDataSetChanged();
-                                    Toast.makeText(context,"Tank Archive Success Tank Name: "+tankNameToArchive,Toast.LENGTH_SHORT).show();
-                                    progressDialog.dismiss();
-                                }
-                            }).addOnFailureListener(new OnFailureListener() {
-                                @Override
-                                public void onFailure(@NonNull Exception e) {
-                                    Toast.makeText(context,"Failed to archive Tank Name: "+tankNameToArchive,Toast.LENGTH_SHORT).show();
-                                    progressDialog.dismiss();
-                                }
-                            });
-                        }
-                    }
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
 
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-                        progressDialog.dismiss();
-                    }
-                });
+        if (currentUser != null) {
+            String userId = currentUser.getUid();
+            FirebaseDatabase sourceDatabase = FirebaseDatabase.getInstance();
+            DatabaseReference sourceTankRef = sourceDatabase.getReference("tank").child(userId);
+
+            sourceTankRef.orderByChild("tankName").equalTo(tankNameToArchive)
+                    .addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                                tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        FirebaseDatabase targetDatabase = FirebaseDatabase.getInstance();
+                                        DatabaseReference targetTankRef = targetDatabase.getReference("archived_tank").child(userId);
+                                        DatabaseReference archivedTankRef = targetTankRef.push();
+                                        archivedTankRef.child("fishCount").setValue(fishCountToArchive);
+                                        archivedTankRef.child("tankName").setValue(tankNameToArchive);
+                                        archivedTankRef.child("timeStamp").setValue(timeStampToArchive);
+                                        notifyDataSetChanged();
+                                        Toast.makeText(context, "Tank Archive Success Tank Name: " + tankNameToArchive, Toast.LENGTH_SHORT).show();
+                                        progressDialog.dismiss();
+                                    }
+                                }).addOnFailureListener(new OnFailureListener() {
+                                    @Override
+                                    public void onFailure(@NonNull Exception e) {
+                                        Toast.makeText(context, "Failed to archive Tank Name: " + tankNameToArchive, Toast.LENGTH_SHORT).show();
+                                        progressDialog.dismiss();
+                                    }
+                                });
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+                            progressDialog.dismiss();
+                        }
+                    });
+
+        } else {
+            // User not authenticated or something went wrong
+            progressDialog.dismiss();
+            Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show();
+        }
     }
+
 
     private void showRenameProgressDialog(final int position) {
         final ProgressDialog progressDialog = new ProgressDialog(context);
@@ -167,50 +183,56 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         builder.setView(newTankNameInput);
 
         builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String newTankName = newTankNameInput.getText().toString().trim();
-                if (!newTankName.isEmpty()) {
-                    // Get the old tank name
-                    FishCountModel fishCountModel = fishCountList.get(position);
-                    String oldTankName = fishCountModel.getTankName();
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        String newTankName = newTankNameInput.getText().toString().trim();
+                        if (!newTankName.isEmpty()) {
+                            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                            if (currentUser != null) {
+                                // Get the old tank name
+                                FishCountModel fishCountModel = fishCountList.get(position);
+                                String oldTankName = fishCountModel.getTankName();
+                                String userId = currentUser.getUid();
 
-                    // Create a Firebase reference to the "tank" node
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference tankRef = database.getReference("tank");
+                                // Create a Firebase reference to the "tank" node for the current user
+                                FirebaseDatabase database = FirebaseDatabase.getInstance();
+                                DatabaseReference tankRef = database.getReference("tank").child(userId);
 
-                    // Query for the tank to rename based on oldTankName
-                    tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
-                                // Update the "tankName" field with the newTankName
-                                tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                // Query for the tank to rename based on oldTankName
+                                tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
                                     @Override
-                                    public void onSuccess(Void aVoid) {
-                                        // Successfully renamed the tank by tankName
-                                        progressDialog.dismiss();
-                                        notifyDataSetChanged();
-                                        // Dismiss the progress dialog
-                                        // You may also want to update the UI or the data source to reflect the new tank name.
+                                    public void onDataChange(DataSnapshot dataSnapshot) {
+                                        for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                                            // Update the "tankName" field with the newTankName
+                                            tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                                @Override
+                                                public void onSuccess(Void aVoid) {
+                                                    // Successfully renamed the tank by tankName
+                                                    progressDialog.dismiss();
+                                                    notifyDataSetChanged();
+                                                    // Dismiss the progress dialog
+                                                    // You may also want to update the UI or the data source to reflect the new tank name.
+                                                }
+                                            }).addOnFailureListener(new OnFailureListener() {
+                                                @Override
+                                                public void onFailure(@NonNull Exception e) {
+                                                    progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                                                    // Handle the error if the renaming fails
+                                                }
+                                            });
+                                        }
                                     }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
-                                        // Handle the error if the renaming fails
-                                    }
-                                });
+                                 @Override
+                                 public void onCancelled(DatabaseError databaseError) {
+                                 progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                                     // Handle any errors or onCancelled events
+                             }
+                                 });
+                            } else {
+                                progressDialog.dismiss(); // Dismiss the progress dialog if the user is not authenticated
+                                Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show();
                             }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
-                            // Handle any errors or onCancelled events
-                        }
-                    });
-                } else {
+                        } else {
                     progressDialog.dismiss(); // Dismiss the progress dialog if renaming is not performed
                     Toast.makeText(context, "New tank name is required", Toast.LENGTH_SHORT).show();
                 }

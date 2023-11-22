@@ -1,9 +1,8 @@
-package com.m.motion_2;
+package com.finquant.Activity;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.AppCompatButton;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -11,7 +10,6 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
@@ -22,9 +20,12 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import com.finquant.Adapter.FishCountAdapter;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -33,10 +34,11 @@ import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
-import com.google.gson.Gson;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.Paragraph;
 import com.itextpdf.text.pdf.PdfWriter;
+import com.finquant.Class.FishCountModel;
+import com.m.motion_2.R;
 
 import java.io.FileOutputStream;
 import java.nio.file.Files;
@@ -77,6 +79,17 @@ public class Fish_count_list extends AppCompatActivity {
             adapter = new FishCountAdapter(this, fishCountList);
             recyclerView.setAdapter(adapter);
 
+            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+            if (currentUser != null) {
+                String userId = currentUser.getUid();
+                DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
+                databaseReference = userTanksRef;
+            } else {
+                Toast.makeText(getApplicationContext(), "User not authenticated", Toast.LENGTH_SHORT).show();
+                Intent loginIntent = new Intent(Fish_count_list.this, login.class);
+                startActivity(loginIntent);
+                finish(); // Optional: Close the current activity so users can't go back without login
+            }
             back.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {

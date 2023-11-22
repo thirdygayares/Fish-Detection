@@ -1,6 +1,7 @@
-package com.m.motion_2;
+package com.finquant.Activity;
 
 import android.app.AlertDialog;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -32,6 +33,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.m.motion_2.R;
 
 public class login extends AppCompatActivity {
     AppCompatButton registerBtn, loginBtn;
@@ -334,9 +336,18 @@ public class login extends AppCompatActivity {
                         progressDialog.dismiss();
                         if (dataSnapshot.exists()) {
                             // User is a student, navigate to StudentPageActivity
-                            startActivity(new Intent(login.this, front_page.class));
-                            overridePendingTransition(0,0);
+                            Intent intent = new Intent(login.this, front_page.class);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+
+                            PendingIntent pendingIntent = PendingIntent.getActivity(login.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+
+                            try {
+                                pendingIntent.send();
+                            } catch (PendingIntent.CanceledException e) {
+                                e.printStackTrace();
+                            }
                             finish();
+
                         } else {
                             ValueEventListener adminListener = new ValueEventListener() {
                                 @Override

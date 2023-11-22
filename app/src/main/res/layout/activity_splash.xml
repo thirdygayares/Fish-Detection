@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="#DAFFFB"
-    tools:context=".SplashActivity">
+    tools:context="com.finquant.Activity.SplashActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -22,27 +22,46 @@
             app:lottie_rawRes="@raw/fish" />
     </LinearLayout>
 
-    <LinearLayout
+    <RelativeLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="50dp">
+        android:layout_marginBottom="65dp">
 
         <TextView
+            android:id="@+id/text"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             app:fontFamily="@font/century_gothic"
             android:layout_centerHorizontal="true"
+            android:layout_marginBottom="30dp"
             android:text="WELCOME"
             android:textColor="@color/black"
             android:textStyle="bold" />
-        <ProgressBar
-            android:id="@+id/progressbar"
+
+        <com.mikhaellopez.circularprogressbar.CircularProgressBar
+            android:id="@+id/circularProgressBar"
+            android:layout_width="65dp"
+            android:layout_height="65dp"
+            android:layout_below="@+id/text"
+            android:layout_marginTop="5dp"
+            android:layout_centerInParent="true"
+            app:cpb_background_progressbar_color="#b6bbd8"
+            app:cpb_background_progressbar_width="5dp"
+            app:cpb_progress_direction="to_right"
+            app:cpb_progressbar_color="#3f51b5"
+            app:cpb_progressbar_width="10dp"
+            app:cpb_round_border="false" />
+        <TextView
+            android:id="@+id/textViewProgress"
             android:layout_width="wrap_content"
-            android:layout_marginTop="20dp"
-            android:layout_height="wrap_content" />
-    </LinearLayout>
+            android:layout_height="wrap_content"
+            android:text="0%"
+            android:textSize="16sp"
+            android:textColor="#000000"
+            android:layout_centerInParent="true" />
+
+    </RelativeLayout>
 </RelativeLayout>

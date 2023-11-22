@@ -1,17 +1,12 @@
-package com.m.motion_2;
+package com.finquant.Activity;
 
 import android.Manifest;
 import android.app.ProgressDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
-import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
-import android.os.PowerManager;
-import android.provider.Settings;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -29,8 +24,11 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.m.motion_2.R;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnDismissListener;
@@ -373,6 +371,7 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
         TextView fishCountTextView = contentView.findViewById(R.id.fishCountTextView);
         EditText tankNameInput = contentView.findViewById(R.id.tankNameInput);
         fishCountTextView.setText(String.valueOf(fishCount));
+
         DialogPlus dialog = DialogPlus.newDialog(this)
                 .setContentHolder(new ViewHolder(contentView))
                 .setHeader(R.layout.dialog_header)
@@ -391,19 +390,21 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
                 .setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(DialogPlus dialog, View view) {
-                        if (view.getId() == R.id.saveButton) {
+                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+                        if (view.getId() == R.id.saveButton && currentUser != null) {
                             String tankName = tankNameInput.getText().toString().trim();
                             if (!tankName.isEmpty()) {
                                 // Get the current date and time
                                 SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
                                 String currentDateTime = dateFormat.format(new Date());
 
-                                // Create a Firebase reference to the "tank" node
-                                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                                DatabaseReference tankRef = database.getReference("tank");
+                                // Create a Firebase reference to the "user_tanks" node under the current user's ID
+                                String userId = currentUser.getUid();
+                                DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
 
                                 // Set the fish count, tank name, and timestamp as child values in a single node
-                                DatabaseReference newFishCountRef = tankRef.push();
+                                DatabaseReference newFishCountRef = userTanksRef.push();
                                 newFishCountRef.child("tankName").setValue(tankName);
                                 newFishCountRef.child("fishCount").setValue(fishCount);
                                 newFishCountRef.child("timeStamp").setValue(currentDateTime);
@@ -432,6 +433,7 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 
         dialog.show();
     }
+
 
 
 

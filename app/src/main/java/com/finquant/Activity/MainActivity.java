@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Activity;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
@@ -7,6 +7,8 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.m.motion_2.R;
 
 public class MainActivity extends AppCompatActivity {
     AppCompatButton countbtn;

@@ -48,5 +48,6 @@ dependencies {
     implementation 'com.google.code.gson:gson:2.8.8'
     implementation 'com.itextpdf:itextg:5.5.10'
     implementation 'com.orhanobut:dialogplus:1.11@aar'
+    implementation 'com.mikhaellopez:circularprogressbar:3.1.0'
 
 }

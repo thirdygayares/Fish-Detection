@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Activity;
 
 import android.content.Intent;
 import android.os.Bundle;
@@ -23,6 +23,7 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.auth.UserProfileChangeRequest;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.m.motion_2.R;
 
 public class Register extends AppCompatActivity {
     private TextInputLayout nameEditText, emailEditText, usernameEditText, passwordEditText, ageEditText;

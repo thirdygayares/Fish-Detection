@@ -1,4 +1,4 @@
-package com.m.motion_2;
+package com.finquant.Class;
 
 public class FishCountModel {
     private int fishCount;
