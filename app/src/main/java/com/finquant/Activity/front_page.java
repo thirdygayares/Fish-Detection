@@ -10,12 +10,16 @@ import android.Manifest;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.finquant.Prefrence_utils.PreferenceUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -35,6 +39,8 @@ public class front_page extends AppCompatActivity {
     private DatabaseReference databaseReference;
     TextView logout;
     private List<FishCountModel> fishCountList;
+    private static final String PREF_CHECK_OVERLAY = "pref_check_overlay";
+    private static final String PREF_CHECK_NOTIFICATION = "pref_check_notification";
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -44,6 +50,11 @@ public class front_page extends AppCompatActivity {
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
+        }
+        boolean isFirstInstall = PreferenceUtils.getBoolean(this, "isFirstInstall", true);
+        if (isFirstInstall) {
+            checkNotificationPermission();
+            PreferenceUtils.putBoolean(this, "isFirstInstall", false);
         }
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PackageManager.PERMISSION_GRANTED);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
@@ -188,6 +199,20 @@ public class front_page extends AppCompatActivity {
 
     }
 
+    public void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            // For Android Oreo (API 26) and above
+            Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(intent);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            // For Android Lollipop (API 21) to Nougat (API 25)
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", getPackageName(), null));
+            startActivity(intent);
+        }
+        PreferenceUtils.putBoolean(this, PREF_CHECK_NOTIFICATION, true);
+    }
 
     private void showWarning() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
