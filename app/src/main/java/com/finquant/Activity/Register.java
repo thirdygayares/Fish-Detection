@@ -4,6 +4,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.text.TextUtils;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
@@ -37,12 +38,13 @@ public class Register extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_register);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
+        changeStatusBarColor(getResources().getColor(R.color.darkBlue));
         nameEditText = findViewById(R.id.name);
         emailEditText = findViewById(R.id.Email);
         login = findViewById(R.id.loginBtn);
@@ -83,6 +85,13 @@ public class Register extends AppCompatActivity {
             }
         });
     }
+
+    private void changeStatusBarColor(int color) {
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(color);
+    }
+
     private void registerUser() {
         // Retrieve user inputs
         final String name = nameEditText.getEditText().getText().toString().trim();

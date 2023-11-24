@@ -102,34 +102,34 @@ public class MyService extends Service {
 
     //7days
 
-//    private long calculateInitialDelay() {
-//        Locale userLocale = Locale.getDefault();
-//        long currentTimeMillis = System.currentTimeMillis();
-//        Calendar calendar = Calendar.getInstance(userLocale);
-//        calendar.setTimeInMillis(currentTimeMillis);
-//        calendar.add(Calendar.DAY_OF_WEEK, 6); // Adding 7 days
-//        //setHours
-//        calendar.set(Calendar.HOUR_OF_DAY,24);
-//        calendar.set(Calendar.MINUTE, 0);
-//        calendar.set(Calendar.SECOND, 0);
-//        long futureTriggerTimeMillis = calendar.getTimeInMillis();
-//        return futureTriggerTimeMillis - currentTimeMillis;
-//    }
-
-//1 days
     private long calculateInitialDelay() {
         Locale userLocale = Locale.getDefault();
         long currentTimeMillis = System.currentTimeMillis();
         Calendar calendar = Calendar.getInstance(userLocale);
         calendar.setTimeInMillis(currentTimeMillis);
-        calendar.add(Calendar.DAY_OF_WEEK, 1);
+        calendar.add(Calendar.DAY_OF_WEEK, 6); // Adding 7 days
         //setHours
-        calendar.set(Calendar.HOUR_OF_DAY,0);
+        calendar.set(Calendar.HOUR_OF_DAY,24);
         calendar.set(Calendar.MINUTE, 0);
         calendar.set(Calendar.SECOND, 0);
         long futureTriggerTimeMillis = calendar.getTimeInMillis();
         return futureTriggerTimeMillis - currentTimeMillis;
     }
+
+//1 days
+//    private long calculateInitialDelay() {
+//        Locale userLocale = Locale.getDefault();
+//        long currentTimeMillis = System.currentTimeMillis();
+//        Calendar calendar = Calendar.getInstance(userLocale);
+//        calendar.setTimeInMillis(currentTimeMillis);
+//        calendar.add(Calendar.DAY_OF_WEEK, 1);
+//        //setHours
+//        calendar.set(Calendar.HOUR_OF_DAY,0);
+//        calendar.set(Calendar.MINUTE, 0);
+//        calendar.set(Calendar.SECOND, 0);
+//        long futureTriggerTimeMillis = calendar.getTimeInMillis();
+//        return futureTriggerTimeMillis - currentTimeMillis;
+//    }
 
 
     private void removeOldDiaryEntriesForCurrentUser() {
@@ -186,7 +186,7 @@ public class MyService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("FindQuant notification")
                 .setContentText("Your fish count in Aquarium has been reset.")
-                .setSmallIcon(R.drawable.logofin)
+                .setSmallIcon(R.mipmap.logofin)
                 .setContentIntent(loginPendingIntent) // Set the PendingIntent to be triggered on notification click
                 .setAutoCancel(true); // Automatically cancel the notification when clicked
         NotificationManager manager = getSystemService(NotificationManager.class);
@@ -211,7 +211,7 @@ public class MyService extends Service {
         NotificationCompat.Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID)
                 .setContentTitle("FindQuant")
                 .setContentText("Running in the background")
-                .setSmallIcon(R.drawable.logofin);
+                .setSmallIcon(R.mipmap.logofin);
         builder.setOngoing(true);
         final Handler handler = new Handler();
         handler.postDelayed(new Runnable() {

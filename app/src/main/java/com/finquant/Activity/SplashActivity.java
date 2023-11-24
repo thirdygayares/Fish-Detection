@@ -3,6 +3,7 @@ package com.finquant.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.TextView;
 
@@ -21,8 +22,9 @@ public class SplashActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_splash);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+//        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         TextView textViewProgress = findViewById(R.id.textViewProgress);
+        changeStatusBarColor(getResources().getColor(R.color.superBlue));
         // Hide action bar
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
@@ -33,10 +35,10 @@ public class SplashActivity extends AppCompatActivity {
         CircularProgressBar circularProgressBar = findViewById(R.id.circularProgressBar);
 
         // Set CircularProgressBar properties
-        circularProgressBar.setProgressBarWidth(10f);
+        circularProgressBar.setProgressBarWidth(5f);
         circularProgressBar.setBackgroundProgressBarWidth(5f);
         circularProgressBar.setProgressBarColor(getResources().getColor(R.color.dark_blue));
-        circularProgressBar.setBackgroundProgressBarColor(getResources().getColor(R.color.semi));
+        circularProgressBar.setBackgroundProgressBarColor(getResources().getColor(R.color.light));
 
         // Calculate progress update interval based on total duration and total progress
         long progressUpdateInterval = SPLASH_DISPLAY_DURATION / TOTAL_PROGRESS;
@@ -70,5 +72,11 @@ public class SplashActivity extends AppCompatActivity {
                 });
             }).start();
         }, 1000);
+    }
+
+    private void changeStatusBarColor(int color) {
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(color);
     }
 }

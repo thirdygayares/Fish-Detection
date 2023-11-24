@@ -12,7 +12,7 @@
         android:id="@+id/headerImageView"
         android:layout_width="50dp"
         android:layout_height="50dp"
-        android:src="@drawable/logofin"
+        android:src="@mipmap/logofin"
         android:contentDescription="Header Image" />
 
     <TextView

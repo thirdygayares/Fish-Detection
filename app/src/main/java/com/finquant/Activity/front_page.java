@@ -11,15 +11,19 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.finquant.Prefrence_utils.PreferenceUtils;
+import com.finquant.Utils.Dialog_utils;
+import com.finquant.Utils.PreferenceUtils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -30,6 +34,8 @@ import com.google.firebase.database.ValueEventListener;
 import com.finquant.Class.FishCountModel;
 import com.finquant.Service.MyService;
 import com.m.motion_2.R;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.ViewHolder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,25 +45,23 @@ public class front_page extends AppCompatActivity {
     private DatabaseReference databaseReference;
     TextView logout;
     private List<FishCountModel> fishCountList;
-    private static final String PREF_CHECK_OVERLAY = "pref_check_overlay";
-    private static final String PREF_CHECK_NOTIFICATION = "pref_check_notification";
+    private static final String CONFIRMED ="CONFIRMED";
+    Dialog_utils dialogUtils;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_front_page);
         logout = findViewById(R.id.logout);
+        changeStatusBarColor(getResources().getColor(R.color.superBlue));
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         ActionBar actionBar = getSupportActionBar();
         if (actionBar != null) {
             actionBar.hide();
         }
-        boolean isFirstInstall = PreferenceUtils.getBoolean(this, "isFirstInstall", true);
-        if (isFirstInstall) {
-            checkNotificationPermission();
-            PreferenceUtils.putBoolean(this, "isFirstInstall", false);
-        }
+        dialogUtils = new Dialog_utils();
+        openSettings();
+        showWarning();
         ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, PackageManager.PERMISSION_GRANTED);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         count_fish = findViewById(R.id.count_fish);
         archive = findViewById(R.id.archive_tank);
         tank = findViewById(R.id.tank_list);
@@ -72,7 +76,6 @@ public class front_page extends AppCompatActivity {
 //                startActivity(intent);
 //            }
         fishCountList = new ArrayList<>();
-        showWarning();
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
         if (currentUser != null) {
             String userId = currentUser.getUid();
@@ -110,35 +113,8 @@ public class front_page extends AppCompatActivity {
         count_fish.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Create an AlertDialog to confirm counting fish
-                AlertDialog.Builder builder = new AlertDialog.Builder(front_page.this);
-                builder.setTitle("Confirm Fish Count");
-                builder.setMessage("Are you sure you want to count fish?");
-
-                // Add a positive button (Yes)
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Proceed to the CountAct activity
-                        Intent i = new Intent(getApplicationContext(), CountAct.class);
-                        startActivity(i);
-                        overridePendingTransition(0, 0);
-                        finish();
-                    }
-                });
-
-                // Add a negative button (No)
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing, simply close the dialog
-                        dialog.dismiss();
-                    }
-                });
-
-                // Show the AlertDialog
-                AlertDialog dialog = builder.create();
-                dialog.show();
+            Dialog_utils dialog_utils = new Dialog_utils();
+            dialog_utils.countFish(front_page.this);
             }
         });
 
@@ -164,69 +140,24 @@ public class front_page extends AppCompatActivity {
         logout.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                // Create an AlertDialog to confirm counting fish
-                AlertDialog.Builder builder = new AlertDialog.Builder(front_page.this);
-                builder.setTitle("Logout");
-                builder.setMessage("Are you sure you want to Logout?");
-
-                // Add a positive button (Yes)
-                builder.setPositiveButton("Yes", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Proceed to the CountAct activity
-                        Intent i = new Intent(getApplicationContext(), login.class);
-                        FirebaseAuth.getInstance().signOut();
-                        startActivity(i);
-                        overridePendingTransition(0, 0);
-                        finish();
-                    }
-                });
-
-                // Add a negative button (No)
-                builder.setNegativeButton("No", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        // Do nothing, simply close the dialog
-                        dialog.dismiss();
-                    }
-                });
-
-                // Show the AlertDialog
-                AlertDialog dialog = builder.create();
-                dialog.show();
+                Dialog_utils dialog_utils = new Dialog_utils();
+                dialog_utils.logout(front_page.this);
             }
+
         });
 
     }
 
-    public void checkNotificationPermission() {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            // For Android Oreo (API 26) and above
-            Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
-            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
-            startActivity(intent);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
-            // For Android Lollipop (API 21) to Nougat (API 25)
-            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
-            intent.setData(Uri.fromParts("package", getPackageName(), null));
-            startActivity(intent);
-        }
-        PreferenceUtils.putBoolean(this, PREF_CHECK_NOTIFICATION, true);
+    private void changeStatusBarColor(int color) {
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(color);
     }
 
+    private void openSettings() {
+        dialogUtils.foreground(this);
+    }
     private void showWarning() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Warning");
-        builder.setMessage("This application has been specifically developed for the sole purpose of fish counting");
-        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                // The user clicked the OK button
-                dialog.dismiss();
-            }
-        });
-        builder.setCancelable(false); // Prevent the user from dismissing the dialog by tapping outside of it
-        AlertDialog alertDialog = builder.create();
-        alertDialog.show();
+        dialogUtils.warning(this);
     }
 }

@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.text.Editable;
 import android.text.TextWatcher;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
@@ -61,11 +62,11 @@ public class Fish_count_list2 extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_fish_count_list2);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         EditText searchEditText = findViewById(R.id.search);
         Spinner spinner = findViewById(R.id.Spinner);
+        changeStatusBarColor(getResources().getColor(R.color.blue1));
         back = findViewById(R.id.back);
         ActionBar actionBar = getSupportActionBar();
 
@@ -225,6 +226,13 @@ public class Fish_count_list2 extends AppCompatActivity {
             });
         }
     }
+
+    private void changeStatusBarColor(int color) {
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(color);
+    }
+
 
     private void filterDataByDay(String selectedDayOfWeek) {
         List<FishCountModel> filteredList = new ArrayList<>();

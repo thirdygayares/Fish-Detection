@@ -5,12 +5,17 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
+import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
@@ -23,6 +28,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
+import com.finquant.Utils.Dialog_utils;
+import com.finquant.Utils.PreferenceUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
@@ -34,6 +41,8 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.m.motion_2.R;
+import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.ViewHolder;
 
 public class login extends AppCompatActivity {
     AppCompatButton registerBtn, loginBtn;
@@ -43,7 +52,7 @@ public class login extends AppCompatActivity {
     ProgressDialog progressDialog;
     private AlertDialog dialog;
     private FirebaseAuth mAuth;
-
+    private static  String NOTIFICATION_PREF_KEY = "notification_permission";
     private Boolean validateUsername() {
         String val = username.getEditText().getText().toString();
         if (val.isEmpty()) {
@@ -67,11 +76,11 @@ public class login extends AppCompatActivity {
             return true;
         }
     }
-
+    Dialog_utils dialogUtils;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
+        changeStatusBarColor(getResources().getColor(R.color.superBlue));
         setContentView(R.layout.activity_login);
         registerBtn = findViewById(R.id.registerBtn);
         loginBtn = findViewById(R.id.loginBtn);
@@ -87,7 +96,8 @@ public class login extends AppCompatActivity {
         progressDialog.setMessage("Logging in...");
         progressDialog.setCancelable(false);
 
-
+        dialogUtils = new Dialog_utils();
+        notification();
 
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -187,6 +197,29 @@ public class login extends AppCompatActivity {
             }
         });
 
+    }
+
+    private void changeStatusBarColor(int color) {
+        Window window = getWindow();
+        window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+        window.setStatusBarColor(color);
+    }
+
+    private void notification() {
+        dialogUtils.notification(this, this);
+    }
+
+
+    public void checkNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            Intent intent = new Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS);
+            intent.putExtra(Settings.EXTRA_APP_PACKAGE, getPackageName());
+            startActivity(intent);
+        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP && Build.VERSION.SDK_INT < Build.VERSION_CODES.O) {
+            Intent intent = new Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS);
+            intent.setData(Uri.fromParts("package", getPackageName(), null));
+            startActivity(intent);
+        }
     }
 
 //    private void showForgotPasswordPopup() {

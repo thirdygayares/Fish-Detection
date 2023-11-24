@@ -22,7 +22,7 @@
             android:layout_width="150dp"
             android:layout_height="150dp"
             android:layout_gravity="center"
-            android:src="@drawable/logofin"/>
+            android:src="@mipmap/logofin"/>
         <TextView
             android:id="@+id/logoName"
             android:layout_width="wrap_content"

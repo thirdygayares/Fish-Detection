@@ -1,5 +1,11 @@
 <resources>
     <string name="app_name">FinQuant</string>
+    <string name="Open_settings">App Settings</string>
+    <string name="foreground">Tap confirm and go to battery usage</string>
+    <string name="background">to allow forgeground and background</string>
+    <string name="warning1">This application has been specifically</string>
+    <string name="warning2">developed for the sole purpose</string>
+    <string name="warning3">of fish counting</string>
     <string-array name="gender_array">
         <item>Select Gender</item>
         <item>Male</item>

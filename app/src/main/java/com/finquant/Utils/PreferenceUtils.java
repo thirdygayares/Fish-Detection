@@ -1,4 +1,4 @@
-package com.finquant.Prefrence_utils;
+package com.finquant.Utils;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;

@@ -1,0 +1,32 @@
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:gravity="center"
+    android:background="#EEF5FF"
+    android:orientation="vertical">
+    <include layout="@layout/dialog_header"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:textStyle="bold"
+        android:layout_marginRight="105dp"
+        android:textSize="20dp"
+        android:fontFamily="@font/century_gothic"
+        android:textColor="@color/black"
+        android:text="Logout?"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:layout_marginTop="10dp"
+        android:layout_marginRight="10dp"
+        android:layout_marginLeft="10dp"
+        android:textSize="18dp"
+        android:fontFamily="@font/century_gothic"
+        android:textColor="@color/black"
+        android:layout_marginBottom="20dp"
+        android:text="Are you sure you want to log out?"/>
+    <include layout="@layout/dialog_footer4"/>
+</LinearLayout>
