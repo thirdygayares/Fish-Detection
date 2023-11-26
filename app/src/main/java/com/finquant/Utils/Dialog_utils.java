@@ -82,11 +82,11 @@ public class Dialog_utils {
                             }
                         } else if (view.getId() == R.id.tryAgainButton) {
                             Intent i = new Intent(activity.getApplicationContext(), CountAct.class);
+                            countAct.reinitializeCamera();
+                            countAct.onCameraViewStopped();
                             activity.startActivity(i);
                             activity.overridePendingTransition(0, 0);
                             countAct.finishActivity();
-                            countAct.reinitializeCamera();
-                            countAct.handleCameraViewStopped();
                         } else if (view.getId() == R.id.cancelButton) {
                             countAct.reinitializeCamera();
                             dialog.dismiss(); // Close the dialog if the "Cancel" button is clicked

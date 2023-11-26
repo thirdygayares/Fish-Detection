@@ -212,30 +212,33 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 
         for (MatOfPoint contour : contours) {
             double area = Imgproc.contourArea(contour);
+
+            Scalar color = calculateAverageColor(image, contour);
+
+            totalFishArea += area;
             if (area > minFishSize && area < maxFishSize) {
-                Scalar color = calculateAverageColor(image, contour, true);
-                Imgproc.drawContours(image, contours, contours.indexOf(contour), color, 2);
-                totalFishArea += area;
 
-                MatOfPoint2f approxCurve = new MatOfPoint2f();
-                MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
-                double contourPerimeter = Imgproc.arcLength(contour2f, true);
-                Imgproc.approxPolyDP(contour2f, approxCurve, 0.04 * contourPerimeter, true);
-                int vertices = (int) approxCurve.total();
+            Rect boundingRect = Imgproc.boundingRect(contour);
+            Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), color, 2);
 
-                double circularity = 0.0;
-                if (vertices >= 3) {
-                    double contourArea = Imgproc.contourArea(contour);
-                    circularity = (4 * Math.PI * contourArea) / (contourPerimeter * contourPerimeter);
+            MatOfPoint2f approxCurve = new MatOfPoint2f();
+            MatOfPoint2f contour2f = new MatOfPoint2f(contour.toArray());
+            double contourPerimeter = Imgproc.arcLength(contour2f, true);
+            Imgproc.approxPolyDP(contour2f, approxCurve, 0.04 * contourPerimeter, true);
+            int vertices = (int) approxCurve.total();
 
-                    if (circularity > 0.7) {
-                        Rect boundingRect = Imgproc.boundingRect(contour);
-                        Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), new Scalar(0, 255, 0), 2);
-                    }
+            double circularity = 0.0;
+            if (vertices >= 3) {
+                double contourArea = Imgproc.contourArea(contour);
+                circularity = (4 * Math.PI * contourArea) / (contourPerimeter * contourPerimeter);
+
+                if (circularity > 0.7) {
+                    Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), new Scalar(0, 255, 0), 2);
                 }
-             }
+            }
         }
-//calibration
+            }
+        // Calibration
         if (totalFrameArea > 0) {
             double fishPercentage = (totalFishArea / totalFrameArea) * 100;
             updateFishPercentage(fishPercentage);
@@ -255,34 +258,18 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             }
         });
     }
-    private Scalar calculateAverageColor(Mat image, MatOfPoint contour, boolean countFish) {
-        if (countFish) {
-            Mat mask = Mat.zeros(image.size(), CvType.CV_8U);
-            List<MatOfPoint> contours = new ArrayList<>();
-            contours.add(contour);
-            Imgproc.drawContours(mask, contours, 0, new Scalar(255), -1); // Fill the contour with white
-
-            double area = Imgproc.contourArea(contour);
-            if (area > minFishSize && area < maxFishSize) {
-                fishCount++;
-                Mat maskedImage = new Mat();
-                image.copyTo(maskedImage, mask);
-                Scalar meanColor = Core.mean(maskedImage);
-                if (meanColor.val[0] > 100 && meanColor.val[0] < 150
-                        && meanColor.val[1] > 50 && meanColor.val[1] < 200
-                        && meanColor.val[2] > 50 && meanColor.val[2] < 150) {
-                    // Get bounding rectangle for the contour
-                    Rect boundingRect = Imgproc.boundingRect(contour);
-
-                    // Draw the bounding rectangle on the image
-                    Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), new Scalar(0, 0, 255), 3);
-                }
-
-                return new Scalar(0, 0, 255); // Placeholder color
-            }
+    private Scalar calculateAverageColor(Mat image, MatOfPoint contour) {
+        Rect boundingRect = Imgproc.boundingRect(contour);
+        double area = Imgproc.contourArea(contour);
+        Scalar color = new Scalar(0, 255, 0);
+        if (area > minFishSize && area < maxFishSize) {
+            fishCount++;
+            Imgproc.rectangle(image, boundingRect.tl(), boundingRect.br(), color, 3);
         }
-        return new Scalar(0, 0, 0);
+        return color;
     }
+
+
     @Override
     public void onCameraViewStarted(int width, int height) {
         // Initialize any image processing parameters here if needed
