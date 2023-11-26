@@ -42,11 +42,6 @@
                 android:value="" />
         </activity>
 
-        <service
-            android:name="com.finquant.Service.MyService"
-            android:enabled="true"
-            android:exported="true" />
-
         <activity
             android:name="com.finquant.Activity.Register"
             android:exported="false" />

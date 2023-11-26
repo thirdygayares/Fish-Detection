@@ -24,6 +24,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.finquant.Utils.Dialog_utils;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -171,14 +172,12 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             cameraView.setZoom(zoomLevel);
         }
     }
-
     private void zoomOut() {
         if (cameraView != null && zoomLevel > 0) {
             zoomLevel -= 1;
             cameraView.setZoom(zoomLevel);
         }
     }
-
     private void requestCameraPermission() {
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.CAMERA}, CAMERA_PERMISSION_REQUEST_CODE);
@@ -186,7 +185,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             initializeCamera();
         }
     }
-
     private void initializeCamera() {
         if (cameraView != null) {
             cameraView.setCameraIndex(JavaCameraView.CAMERA_ID_BACK);
@@ -195,9 +193,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             cameraView.enableView();
         }
     }
-
-
-
     private void countFish(Mat image) {
         Mat grayImage = new Mat();
         Imgproc.cvtColor(image, grayImage, Imgproc.COLOR_BGR2GRAY);
@@ -260,8 +255,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             }
         });
     }
-
-
     private Scalar calculateAverageColor(Mat image, MatOfPoint contour, boolean countFish) {
         if (countFish) {
             Mat mask = Mat.zeros(image.size(), CvType.CV_8U);
@@ -290,10 +283,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
         }
         return new Scalar(0, 0, 0);
     }
-
-
-
-
     @Override
     public void onCameraViewStarted(int width, int height) {
         // Initialize any image processing parameters here if needed
@@ -306,11 +295,9 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             prevFrame = null;
         }
     }
-
     @Override
     public Mat onCameraFrame(CameraBridgeViewBase.CvCameraViewFrame inputFrame) {
         final Mat rgba = inputFrame.rgba();
-
         // Reset the fish count for each frame
         fishCount = 0;
         long currentTimeMillis = System.currentTimeMillis();
@@ -338,7 +325,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
                 prevTimeMillis = currentTimeMillis;
             }
         }
-
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -353,7 +339,7 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
                         public void run() {
                             // Check if the activity is still running before showing the dialog
                             if (!isFinishing() && !isDestroyed()) {
-                                showFishCountDialog(fishCount);
+                               Dialog_utils.showFishCountDialog(fishCount, CountAct.this);
                             }
                             dialogScheduled = false; // Set the flag to false so it can be scheduled again
                             dialogShown = true; // Set the flag to true after showing the dialog
@@ -366,77 +352,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
 
         return rgba;
     }
-    private void showFishCountDialog(final int fishCount) {
-        View contentView = getLayoutInflater().inflate(R.layout.custom_fish_count_dialog, null);
-        TextView fishCountTextView = contentView.findViewById(R.id.fishCountTextView);
-        EditText tankNameInput = contentView.findViewById(R.id.tankNameInput);
-        fishCountTextView.setText(String.valueOf(fishCount));
-
-        DialogPlus dialog = DialogPlus.newDialog(this)
-                .setContentHolder(new ViewHolder(contentView))
-                .setHeader(R.layout.dialog_header)
-                .setFooter(R.layout.dialog_footer)
-                .setGravity(Gravity.CENTER)
-                .setCancelable(false)
-                .setExpanded(false)
-                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
-                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
-                .setOnDismissListener(new OnDismissListener() {
-                    @Override
-                    public void onDismiss(DialogPlus dialog) {
-                        // Add any code to handle dialog dismissal
-                    }
-                })
-                .setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(DialogPlus dialog, View view) {
-                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-                        if (view.getId() == R.id.saveButton && currentUser != null) {
-                            String tankName = tankNameInput.getText().toString().trim();
-                            if (!tankName.isEmpty()) {
-                                // Get the current date and time
-                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
-                                String currentDateTime = dateFormat.format(new Date());
-
-                                // Create a Firebase reference to the "user_tanks" node under the current user's ID
-                                String userId = currentUser.getUid();
-                                DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
-
-                                // Set the fish count, tank name, and timestamp as child values in a single node
-                                DatabaseReference newFishCountRef = userTanksRef.push();
-                                newFishCountRef.child("tankName").setValue(tankName);
-                                newFishCountRef.child("fishCount").setValue(fishCount);
-                                newFishCountRef.child("timeStamp").setValue(currentDateTime);
-
-                                // Show a success toast message
-                                Toast.makeText(getApplicationContext(), "Fish count saved successfully in tank name: " + tankName, Toast.LENGTH_SHORT).show();
-
-                                dialog.dismiss(); // Close the dialog after saving
-                            } else {
-                                Toast.makeText(getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
-                            }
-                        } else if (view.getId() == R.id.tryAgainButton) {
-                            Intent i = new Intent(getApplicationContext(), CountAct.class);
-                            startActivity(i);
-                            overridePendingTransition(0, 0);
-                            onCameraViewStopped();
-                            initializeCamera();
-                            finish();
-                        } else if (view.getId() == R.id.cancelButton) {
-                            initializeCamera();
-                            dialog.dismiss(); // Close the dialog if the "Cancel" button is clicked
-                        }
-                    }
-                })
-                .create();
-
-        dialog.show();
-    }
-
-
-
-
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -449,6 +364,18 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
                 finish();
             }
         }
+    }
+
+    public void reinitializeCamera() {
+        initializeCamera();
+    }
+    public void finishActivity() {
+        finish();
+    }
+
+    // Public method to handle camera view stopped
+    public void handleCameraViewStopped() {
+        onCameraViewStopped();
     }
 
     @Override
@@ -466,8 +393,6 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             cameraView.disableView();
         }
     }
-
-
 
     @Override
     protected void onDestroy() {

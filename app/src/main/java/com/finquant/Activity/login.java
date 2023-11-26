@@ -1,7 +1,6 @@
 package com.finquant.Activity;
 
 import android.app.AlertDialog;
-import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,7 +11,6 @@ import android.provider.Settings;
 import android.text.Editable;
 import android.text.TextUtils;
 import android.text.TextWatcher;
-import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.Window;
@@ -28,8 +26,6 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatButton;
 
-import com.finquant.Utils.Dialog_utils;
-import com.finquant.Utils.PreferenceUtils;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.android.material.textfield.TextInputLayout;
@@ -41,8 +37,6 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.m.motion_2.R;
-import com.orhanobut.dialogplus.DialogPlus;
-import com.orhanobut.dialogplus.ViewHolder;
 
 public class login extends AppCompatActivity {
     AppCompatButton registerBtn, loginBtn;
@@ -76,7 +70,6 @@ public class login extends AppCompatActivity {
             return true;
         }
     }
-    Dialog_utils dialogUtils;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,10 +88,6 @@ public class login extends AppCompatActivity {
         progressDialog = new ProgressDialog(this);
         progressDialog.setMessage("Logging in...");
         progressDialog.setCancelable(false);
-
-        dialogUtils = new Dialog_utils();
-        notification();
-
         loginBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -203,10 +192,6 @@ public class login extends AppCompatActivity {
         Window window = getWindow();
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
         window.setStatusBarColor(color);
-    }
-
-    private void notification() {
-        dialogUtils.notification(this, this);
     }
 
 
@@ -368,19 +353,10 @@ public class login extends AppCompatActivity {
                     public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
                         progressDialog.dismiss();
                         if (dataSnapshot.exists()) {
-                            // User is a student, navigate to StudentPageActivity
-                            Intent intent = new Intent(login.this, front_page.class);
-                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
-
-                            PendingIntent pendingIntent = PendingIntent.getActivity(login.this, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
-
-                            try {
-                                pendingIntent.send();
-                            } catch (PendingIntent.CanceledException e) {
-                                e.printStackTrace();
-                            }
+                            // User is a student, navigate to front_page
+                            startActivity(new Intent(login.this, front_page.class));
+                            overridePendingTransition(0,0);
                             finish();
-
                         } else {
                             ValueEventListener adminListener = new ValueEventListener() {
                                 @Override
