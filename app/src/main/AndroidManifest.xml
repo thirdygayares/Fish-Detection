@@ -67,9 +67,15 @@
             android:exported="false" />
 
         <activity
+            android:name="com.finquant.Yolov5.CameraActivity"
+            android:theme="@style/AppTheme"
+            android:exported="false" />
+
+        <activity
             android:name="com.finquant.Yolov5.DetectorActivity"
             android:exported="true"
-            android:screenOrientation="portrait"> <!-- Set screenOrientation to portrait -->
+            android:theme="@style/AppTheme"
+           > <!-- Set screenOrientation to portrait -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
