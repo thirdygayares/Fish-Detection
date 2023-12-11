@@ -258,6 +258,8 @@ public class CountAct extends AppCompatActivity implements CameraBridgeViewBase.
             }
         });
     }
+
+    @NonNull
     private Scalar calculateAverageColor(Mat image, MatOfPoint contour) {
         Rect boundingRect = Imgproc.boundingRect(contour);
         double area = Imgproc.contourArea(contour);
