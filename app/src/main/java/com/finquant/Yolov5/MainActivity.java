@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ConfigurationInfo;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Matrix;
@@ -12,6 +13,8 @@ import android.graphics.Paint;
 import android.graphics.RectF;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
+import android.util.Log;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.Toast;
@@ -19,6 +22,7 @@ import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 
 
+import com.finquant.Utils.Dialog_utils;
 import com.finquant.Yolov5.customview.OverlayView;
 import com.finquant.Yolov5.env.ImageUtils;
 import com.finquant.Yolov5.env.Logger;
@@ -47,12 +51,39 @@ public class MainActivity extends AppCompatActivity {
 
         cameraButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, DetectorActivity.class)));
 
+        Intent intent = getIntent();
+        if (intent != null) {
+            Log.d("MainActivity", "intent != null");
+
+            String path = intent.getStringExtra("path");
+            Log.d("MainActivity", "path: " + path);
+
+            if (path != null) {
+                sourceBitmap = BitmapFactory.decodeFile(path);
+                if (sourceBitmap != null) {
+                    cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
+                    if (cropBitmap != null) {
+                        imageView.setImageBitmap(cropBitmap);
+                    } else {
+                        // Handle the error, show message to the user or log
+                        Log.e("MainActivity", "Failed to process the bitmap.");
+                    }
+                } else {
+                    // Handle the error, show message to the user or log
+                    Log.e("MainActivity", "Failed to load bitmap from assets.");
+                }
+            }
+        }
+
+
+
+
         detectButton.setOnClickListener(v -> {
-            Handler handler = new Handler();
+            Handler handler1 = new Handler();
 
             new Thread(() -> {
                 final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
-                handler.post(new Runnable() {
+                handler1.post(new Runnable() {
                     @Override
                     public void run() {
                         handleResult(cropBitmap, results);
@@ -61,11 +92,20 @@ public class MainActivity extends AppCompatActivity {
             }).start();
 
         });
-        this.sourceBitmap = Utils.getBitmapFromAsset(MainActivity.this, "kite.jpg");
 
-        this.cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
 
-        this.imageView.setImageBitmap(cropBitmap);
+        Handler handler = new Handler(Looper.getMainLooper());
+
+        // This will post the Runnable to be executed after 1000 milliseconds (1 second)
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Simulate the button click
+                detectButton.performClick();
+            }
+        }, 1000); // 1000 milliseconds delay
+
+
 
         initBox();
         ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
@@ -82,9 +122,9 @@ public class MainActivity extends AppCompatActivity {
 
     private static final boolean TF_OD_API_IS_QUANTIZED = false;
 
-    private static final String TF_OD_API_MODEL_FILE = "yolov5s.tflite";
+    private static final String TF_OD_API_MODEL_FILE = "best-fp16.tflite";
 
-    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/coco.txt";
+    private static final String TF_OD_API_LABELS_FILE = "file:///android_asset/fish.txt";
 
     // Minimum detection confidence to track a detection.
     private static final boolean MAINTAIN_ASPECT = true;
@@ -133,6 +173,19 @@ public class MainActivity extends AppCompatActivity {
                             TF_OD_API_LABELS_FILE,
                             TF_OD_API_IS_QUANTIZED,
                             TF_OD_API_INPUT_SIZE);
+
+//            Handler handler = new Handler();
+//
+//            new Thread(() -> {
+//                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
+//                handler.postDelayed(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        handleResult(cropBitmap, results);
+//                    }
+//                }, 1000);
+//            }).start();
+
         } catch (final IOException e) {
             e.printStackTrace();
             LOGGER.e(e, "Exception initializing classifier!");
@@ -154,18 +207,27 @@ public class MainActivity extends AppCompatActivity {
         final List<Classifier.Recognition> mappedRecognitions =
                 new LinkedList<Classifier.Recognition>();
 
+        int count = 0; // Initialize the counter outside the loop.
+
         for (final Classifier.Recognition result : results) {
             final RectF location = result.getLocation();
             if (location != null && result.getConfidence() >= MINIMUM_CONFIDENCE_TF_OD_API) {
                 canvas.drawRect(location, paint);
-//                cropToFrameTransform.mapRect(location);
-//
-//                result.setLocation(location);
-//                mappedRecognitions.add(result);
+                cropToFrameTransform.mapRect(location);
+
+                result.setLocation(location);
+                mappedRecognitions.add(result);
+                count++; // Increment the count for each detection.
+
             }
         }
-//        tracker.trackResults(mappedRecognitions, new Random().nextInt());
+
+        Log.d("TAG", "Count: " + count);
+
+        Dialog_utils.showFishCountDialog(count, MainActivity.this);
+
+//        tracker.trackResults(f, new Random().nextInt());
 //        trackingOverlay.postInvalidate();
-        imageView.setImageBitmap(bitmap);
+        //imageView.setImageBitmap(bitmap);
     }
 }

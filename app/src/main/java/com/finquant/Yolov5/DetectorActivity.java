@@ -26,12 +26,16 @@ import android.graphics.Paint.Style;
 import android.graphics.RectF;
 import android.graphics.Typeface;
 import android.media.ImageReader.OnImageAvailableListener;
+import android.os.Bundle;
+import android.os.Environment;
+import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
 import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 
+import com.finquant.Yolov5.customview.AutoFitTextureView;
 import com.finquant.Yolov5.tflite.Classifier.Recognition;
 
 import com.finquant.Yolov5.customview.OverlayView;
@@ -44,6 +48,8 @@ import com.finquant.Yolov5.tflite.YoloV5Classifier;
 import com.finquant.Yolov5.tracking.MultiBoxTracker;
 import com.m.motion_2.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
@@ -81,6 +87,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     private MultiBoxTracker tracker;
 
     private BorderedText borderedText;
+    private AutoFitTextureView textureView;
+
 
     @Override
     public void onPreviewSizeChosen(final Size size, final int rotation) {
@@ -139,8 +147,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         }
                     }
                 });
-
         tracker.setFrameConfiguration(previewWidth, previewHeight, sensorOrientation);
+        //captureAndSaveImageAutomatically(); // Call this method where appropriate
+
     }
 
     protected void updateActiveModel() {
@@ -322,4 +331,61 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
     protected void setNumThreads(final int numThreads) {
         runInBackground(() -> detector.setNumThreads(numThreads));
     }
+
+    private void captureAndSaveImageAutomatically() {
+        Handler captureHandler = new Handler();
+        captureHandler.postDelayed(() -> {
+            // This method should return a Bitmap of the current camera frame.
+            Bitmap capturedBitmap = captureFrame();
+
+            // Check if we successfully captured the frame
+            if (capturedBitmap != null) {
+                // Now save the Bitmap to storage
+                saveImageToStorage(capturedBitmap);
+            } else {
+                Log.e("TAG", "Failed to capture image.");
+            }
+        }, 15000); // Delay in milliseconds
+    }
+
+    private void saveImageToStorage(Bitmap bitmap) {
+        // Define the file name and directory
+        String fileName = "Fish_Tank" + System.currentTimeMillis() + ".png";
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+        // Create the file
+        File imageFile = new File(storageDir, fileName);
+
+        try (FileOutputStream out = new FileOutputStream(imageFile)) {
+            // Compress the bitmap and write to the output stream
+            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+            Log.d("TAG", "Image saved to " + imageFile.getAbsolutePath());
+        } catch (IOException e) {
+            Log.e("TAG", "Error saving image", e);
+        }
+
+    }
+
+
+    private Bitmap captureFrame() {
+        if (textureView == null) {
+            Log.e("TAG", "captureFrame: TextureView is null.");
+            return null;
+        }
+
+        // Get the bitmap from TextureView
+        Bitmap bitmap = textureView.getBitmap();
+
+        // You may need to rotate the bitmap based on the sensor orientation
+        if (sensorOrientation != 0) {
+            Matrix matrix = new Matrix();
+            matrix.postRotate(sensorOrientation);
+            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
+        }
+
+        return bitmap;
+    }
+
+
+
 }

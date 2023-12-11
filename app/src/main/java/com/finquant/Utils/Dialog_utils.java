@@ -16,7 +16,9 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.finquant.Activity.CountAct;
+import com.finquant.Activity.front_page;
 import com.finquant.Activity.login;
+import com.finquant.Yolov5.DetectorActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
@@ -76,12 +78,17 @@ public class Dialog_utils {
                                 // Show a success toast message
                                 Toast.makeText(activity.getApplicationContext(), "Fish count saved successfully in tank name: " + tankName, Toast.LENGTH_SHORT).show();
 
-                                dialog.dismiss(); // Close the dialog after saving
+                                Intent i = new Intent(activity.getApplicationContext(), front_page.class);
+                                countAct.reinitializeCamera();
+                                countAct.onCameraViewStopped();
+                                activity.startActivity(i);
+                                activity.overridePendingTransition(0, 0  );
+                                countAct.finishActivity(); // Close the dialog after saving
                             } else {
                                 Toast.makeText(activity.getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
                             }
                         } else if (view.getId() == R.id.tryAgainButton) {
-                            Intent i = new Intent(activity.getApplicationContext(), CountAct.class);
+                            Intent i = new Intent(activity.getApplicationContext(), DetectorActivity.class);
                             countAct.reinitializeCamera();
                             countAct.onCameraViewStopped();
                             activity.startActivity(i);
@@ -89,7 +96,12 @@ public class Dialog_utils {
                             countAct.finishActivity();
                         } else if (view.getId() == R.id.cancelButton) {
                             countAct.reinitializeCamera();
-                            dialog.dismiss(); // Close the dialog if the "Cancel" button is clicked
+                            Intent i = new Intent(activity.getApplicationContext(), front_page.class);
+                            countAct.reinitializeCamera();
+                            countAct.onCameraViewStopped();
+                            activity.startActivity(i);
+                            activity.overridePendingTransition(0, 0);
+                            countAct.finishActivity();
                         }
                     }
                 })
@@ -136,7 +148,7 @@ public class Dialog_utils {
         Button Confirm_button = contentView.findViewById(R.id.open);
         Button Cancel_button = contentView.findViewById(R.id.cancel);
         Confirm_button.setOnClickListener(v -> {
-            Intent i = new Intent(activity.getApplicationContext(), CountAct.class);
+            Intent i = new Intent(activity.getApplicationContext(), DetectorActivity.class);
             activity.startActivity(i);
             activity.overridePendingTransition(0,0);
             activity.finish();

@@ -21,6 +21,7 @@ import android.app.Fragment;
 import android.content.Context;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
+import android.graphics.Bitmap;
 import android.hardware.Camera;
 import android.hardware.camera2.CameraAccessException;
 import android.hardware.camera2.CameraCharacteristics;
@@ -32,9 +33,11 @@ import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.os.Trace;
+import android.util.Log;
 import android.util.Size;
 import android.view.Surface;
 import android.view.View;
@@ -58,6 +61,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.m.motion_2.R;
 
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.ArrayList;
@@ -518,6 +523,8 @@ public abstract class CameraActivity extends AppCompatActivity
                   previewHeight = size.getHeight();
                   previewWidth = size.getWidth();
                   CameraActivity.this.onPreviewSizeChosen(size, rotation);
+                  captureAndSaveImageAutomatically();
+                  Log.d("TAG", "onPreviewSizeChosen: " + previewHeight + " " + previewWidth);
                 }
               },
               this,
@@ -622,4 +629,53 @@ public abstract class CameraActivity extends AppCompatActivity
   protected abstract void setNumThreads(int numThreads);
 
   protected abstract void setUseNNAPI(boolean isChecked);
+
+  private void saveImageToStorage(Bitmap bitmap) {
+    // Define the file name and directory
+    String fileName = "captured_image_" + System.currentTimeMillis() + ".png";
+    File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+    // Create the file
+    File imageFile = new File(storageDir, fileName);
+
+    try (FileOutputStream out = new FileOutputStream(imageFile)) {
+      // Compress the bitmap and write to the output stream
+      bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+      Log.d("TAG", "Image saved to " + imageFile.getAbsolutePath());
+    } catch (IOException e) {
+      Log.e("TAG", "Error saving image", e);
+    }
+  }
+
+
+  private void captureAndSaveImageAutomatically() {
+    Handler captureHandler = new Handler();
+    captureHandler.postDelayed(() -> {
+      Bitmap capturedBitmap = captureFrame();
+      if (capturedBitmap != null) {
+        saveImageToStorage(capturedBitmap);
+
+      } else {
+        Log.e("TAG", "Failed to capture image.");
+      }
+    }, 2000); // Delay in milliseconds
+  }
+
+
+  private Bitmap captureFrame() {
+    // Check if the current frame is available
+    if (rgbBytes == null) {
+      Log.e("TAG", "RGB bytes not available");
+      return null;
+    }
+
+    // Create a Bitmap from the current frame
+    Bitmap bitmap = Bitmap.createBitmap(previewWidth, previewHeight, Bitmap.Config.ARGB_8888);
+    bitmap.setPixels(rgbBytes, 0, previewWidth, 0, 0, previewWidth, previewHeight);
+
+    return bitmap;
+  }
+
+
+
 }

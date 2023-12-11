@@ -16,13 +16,26 @@ package com.finquant.Yolov5;
  * limitations under the License.
  */
 
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.app.Fragment;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.ConfigurationInfo;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Matrix;
+import android.graphics.Paint;
+import android.graphics.RectF;
 import android.graphics.SurfaceTexture;
 import android.hardware.Camera;
 import android.hardware.Camera.CameraInfo;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -30,20 +43,37 @@ import android.view.Surface;
 import android.view.TextureView;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.ImageView;
+import android.widget.Toast;
 
 
+import com.finquant.Activity.CountAct;
+import com.finquant.Utils.Dialog_utils;
 import com.finquant.Yolov5.customview.AutoFitTextureView;
+import com.finquant.Yolov5.customview.OverlayView;
 import com.finquant.Yolov5.env.ImageUtils;
 import com.finquant.Yolov5.env.Logger;
+import com.finquant.Yolov5.env.Utils;
+import com.finquant.Yolov5.tflite.Classifier;
+import com.finquant.Yolov5.tflite.YoloV5Classifier;
+import com.finquant.Yolov5.tracking.MultiBoxTracker;
 import com.m.motion_2.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.util.LinkedList;
 import java.util.List;
 
 public class LegacyCameraConnectionFragment extends Fragment {
   private static final Logger LOGGER = new Logger();
   /** Conversion from screen rotation to JPEG orientation. */
   private static final SparseIntArray ORIENTATIONS = new SparseIntArray();
+  private boolean dialogScheduled = false;
+  private boolean dialogShown = false; // Add this flag
+  private Handler handler = new Handler();
+
 
   static {
     ORIENTATIONS.append(Surface.ROTATION_0, 90);
@@ -130,6 +160,8 @@ public class LegacyCameraConnectionFragment extends Fragment {
   @Override
   public View onCreateView(
       final LayoutInflater inflater, final ViewGroup container, final Bundle savedInstanceState) {
+
+
     return inflater.inflate(layout, container, false);
   }
 
@@ -157,7 +189,39 @@ public class LegacyCameraConnectionFragment extends Fragment {
     } else {
       textureView.setSurfaceTextureListener(surfaceTextureListener);
     }
+    Log.d("TAG", "onResume: ");
+    captureAndSaveImageAutomatically(); // Call this method to capture and save image automatically
   }
+
+
+
+  // Method to capture and save image automatically
+  private void captureAndSaveImageAutomatically() {
+    Handler captureHandler = new Handler();
+    captureHandler.postDelayed(() -> {
+      Bitmap capturedBitmap = captureFrame();
+      if (capturedBitmap != null) {
+        saveImageToStorage(capturedBitmap);
+
+      } else {
+        Log.e("TAG", "Failed to capture image.");
+      }
+    }, 20000); // Change delay time as needed
+  }
+
+  // Method to capture the current frame from TextureView
+  private Bitmap captureFrame() {
+    if (textureView == null || !textureView.isAvailable()) {
+      Log.e("TAG", "TextureView is null or not available.");
+      return null;
+    }
+
+    Bitmap bitmap = textureView.getBitmap();
+    // Additional processing if needed
+    return bitmap;
+  }
+
+  // Method to save the bitmap to storage
 
   @Override
   public void onPause() {
@@ -200,4 +264,28 @@ public class LegacyCameraConnectionFragment extends Fragment {
     }
     return -1; // No camera found
   }
+
+
+
+  private void saveImageToStorage(Bitmap bitmap) {
+
+File file = new File(Environment.getExternalStorageDirectory() + "/DCIM/Camera/" + System.currentTimeMillis() + ".jpg");
+    try {
+      FileOutputStream fos = new FileOutputStream(file);
+      bitmap.compress(Bitmap.CompressFormat.JPEG, 100, fos);
+      fos.flush();
+      fos.close();
+//    Toast.makeText(getActivity(), "Image saved to storage.", Toast.LENGTH_SHORT).show();
+    } catch (IOException e) {
+      Log.e("TAG", "Failed to save image to storage.");
+      e.printStackTrace();
+    }
+
+    Intent intent = new Intent(getActivity(), com.finquant.Yolov5.MainActivity.class);
+    intent.putExtra("path", file.getAbsolutePath());
+//    intent.putExtra("bitmap", bitmap);
+    getActivity().startActivity(intent);
+
+  }
+
 }

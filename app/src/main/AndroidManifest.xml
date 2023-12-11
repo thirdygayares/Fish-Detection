@@ -63,7 +63,9 @@
             android:name="com.finquant.Activity.MainActivity"
             android:exported="false" />
         <activity
-            android:name="com.finquant.Activity.SplashActivity"
+            android:name="com.finquant.Yolov5.MainActivity"
+
+            android:theme="@style/AppTheme"
             android:exported="false" />
 
         <activity
@@ -71,11 +73,18 @@
             android:theme="@style/AppTheme"
             android:exported="false" />
 
+
+        <activity
+            android:name="com.finquant.Activity.SplashActivity"
+            android:theme="@style/AppTheme"
+            android:exported="false" />
+
         <activity
             android:name="com.finquant.Yolov5.DetectorActivity"
             android:exported="true"
             android:theme="@style/AppTheme"
-           > <!-- Set screenOrientation to portrait -->
+
+            > <!-- Set screenOrientation to portrait -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

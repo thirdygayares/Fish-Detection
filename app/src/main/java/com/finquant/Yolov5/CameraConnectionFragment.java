@@ -27,6 +27,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
 import android.graphics.ImageFormat;
 import android.graphics.Matrix;
 import android.graphics.RectF;
@@ -43,9 +44,11 @@ import android.hardware.camera2.params.StreamConfigurationMap;
 import android.media.ImageReader;
 import android.media.ImageReader.OnImageAvailableListener;
 import android.os.Bundle;
+import android.os.Environment;
 import android.os.Handler;
 import android.os.HandlerThread;
 import android.text.TextUtils;
+import android.util.Log;
 import android.util.Size;
 import android.util.SparseIntArray;
 import android.view.LayoutInflater;
@@ -62,6 +65,9 @@ import com.finquant.Yolov5.customview.AutoFitTextureView;
 import com.finquant.Yolov5.env.Logger;
 import com.m.motion_2.R;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -300,20 +306,62 @@ public class CameraConnectionFragment extends Fragment {
     super.onActivityCreated(savedInstanceState);
   }
 
+
+  // Method to capture and save image automatically
+  private void captureAndSaveImageAutomatically() {
+    Handler captureHandler = new Handler();
+    captureHandler.postDelayed(() -> {
+      Bitmap capturedBitmap = captureFrame();
+      if (capturedBitmap != null) {
+        saveImageToStorage(capturedBitmap);
+      } else {
+        Log.e("TAG", "Failed to capture image.");
+      }
+    }, 2000); // Change delay time as needed
+  }
+
+  // Method to capture the current frame from TextureView
+  private Bitmap captureFrame() {
+    if (textureView == null || !textureView.isAvailable()) {
+      Log.e("TAG", "TextureView is null or not available.");
+      return null;
+    }
+
+    Bitmap bitmap = textureView.getBitmap();
+    // Additional processing if needed
+    return bitmap;
+  }
+
+  // Method to save the bitmap to storage
+  private void saveImageToStorage(Bitmap bitmap) {
+    // Define the file name and directory
+    String fileName = "captured_image_" + System.currentTimeMillis() + ".png";
+    File storageDir = getActivity().getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+
+    // Create the file
+    File imageFile = new File(storageDir, fileName);
+
+    try (FileOutputStream out = new FileOutputStream(imageFile)) {
+      // Compress the bitmap and write to the output stream
+      bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
+      Log.d("TAG", "Image saved to " + imageFile.getAbsolutePath());
+    } catch (IOException e) {
+      Log.e("TAG", "Error saving image", e);
+    }
+  }
+
+
   @Override
   public void onResume() {
     super.onResume();
     startBackgroundThread();
 
-    // When the screen is turned off and turned back on, the SurfaceTexture is already
-    // available, and "onSurfaceTextureAvailable" will not be called. In that case, we can open
-    // a camera and start preview from here (otherwise, we wait until the surface is ready in
-    // the SurfaceTextureListener).
     if (textureView.isAvailable()) {
       openCamera(textureView.getWidth(), textureView.getHeight());
     } else {
       textureView.setSurfaceTextureListener(surfaceTextureListener);
     }
+    captureAndSaveImageAutomatically(); // Capture and save the image automatically
   }
 
   @Override
