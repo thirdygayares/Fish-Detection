@@ -95,13 +95,7 @@ public class Dialog_utils {
                             activity.overridePendingTransition(0, 0);
                             countAct.finishActivity();
                         } else if (view.getId() == R.id.cancelButton) {
-                            countAct.reinitializeCamera();
-                            Intent i = new Intent(activity.getApplicationContext(), front_page.class);
-                            countAct.reinitializeCamera();
-                            countAct.onCameraViewStopped();
-                            activity.startActivity(i);
-                            activity.overridePendingTransition(0, 0);
-                            countAct.finishActivity();
+                            dialog.dismiss();
                         }
                     }
                 })

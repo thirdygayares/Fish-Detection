@@ -332,59 +332,7 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         runInBackground(() -> detector.setNumThreads(numThreads));
     }
 
-    private void captureAndSaveImageAutomatically() {
-        Handler captureHandler = new Handler();
-        captureHandler.postDelayed(() -> {
-            // This method should return a Bitmap of the current camera frame.
-            Bitmap capturedBitmap = captureFrame();
 
-            // Check if we successfully captured the frame
-            if (capturedBitmap != null) {
-                // Now save the Bitmap to storage
-                saveImageToStorage(capturedBitmap);
-            } else {
-                Log.e("TAG", "Failed to capture image.");
-            }
-        }, 15000); // Delay in milliseconds
-    }
-
-    private void saveImageToStorage(Bitmap bitmap) {
-        // Define the file name and directory
-        String fileName = "Fish_Tank" + System.currentTimeMillis() + ".png";
-        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
-
-        // Create the file
-        File imageFile = new File(storageDir, fileName);
-
-        try (FileOutputStream out = new FileOutputStream(imageFile)) {
-            // Compress the bitmap and write to the output stream
-            bitmap.compress(Bitmap.CompressFormat.PNG, 100, out);
-            Log.d("TAG", "Image saved to " + imageFile.getAbsolutePath());
-        } catch (IOException e) {
-            Log.e("TAG", "Error saving image", e);
-        }
-
-    }
-
-
-    private Bitmap captureFrame() {
-        if (textureView == null) {
-            Log.e("TAG", "captureFrame: TextureView is null.");
-            return null;
-        }
-
-        // Get the bitmap from TextureView
-        Bitmap bitmap = textureView.getBitmap();
-
-        // You may need to rotate the bitmap based on the sensor orientation
-        if (sensorOrientation != 0) {
-            Matrix matrix = new Matrix();
-            matrix.postRotate(sensorOrientation);
-            bitmap = Bitmap.createBitmap(bitmap, 0, 0, bitmap.getWidth(), bitmap.getHeight(), matrix, true);
-        }
-
-        return bitmap;
-    }
 
 
 

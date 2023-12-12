@@ -13,29 +13,49 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
+        android:visibility="gone"
+
         />
 
-<androidx.constraintlayout.widget.ConstraintLayout
+<LinearLayout
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/white"
-    android:visibility="gone"
+    android:orientation="vertical"
     >
 
 
+
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+
+        >
+        <ImageView
+            android:id="@+id/imageView"
+            android:layout_width="416dp"
+            android:layout_height="416dp"
+            android:scaleType="fitStart"
+            tools:srcCompat="@drawable/kite" />
+
+        <com.finquant.Yolov5.customview.OverlayView
+            android:id="@+id/tracking_overlay"
+            android:layout_width="416dp"
+            android:layout_height="416dp" />
+
+    </RelativeLayout>
+
+
     <Button
+        android:visibility="gone"
         android:id="@+id/cameraButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Camera"
-        app:layout_constraintBottom_toBottomOf="@+id/detectButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.655"
-        app:layout_constraintStart_toEndOf="@+id/detectButton"
-        app:layout_constraintTop_toTopOf="@+id/detectButton"
-        app:layout_constraintVertical_bias="0.0" />
+        android:text="Camera" />
 
     <Button
+        android:visibility="gone"
         android:id="@+id/detectButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
@@ -46,25 +66,32 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/imageView" />
 
-    <ImageView
-        android:id="@+id/imageView"
-        android:layout_width="416dp"
-        android:layout_height="416dp"
-        android:scaleType="fitStart"
-        app:layout_constraintBottom_toTopOf="@+id/detectButton"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        tools:srcCompat="@drawable/kite" />
 
-    <com.finquant.Yolov5.customview.OverlayView
-        android:id="@+id/tracking_overlay"
-        android:layout_width="416dp"
-        android:layout_height="416dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="20dp"
+        android:padding="20dp"
+        android:text="SAVE"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/btnTryAgain"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginHorizontal="20dp"
+        android:padding="20dp"
+        android:text="Try Again"
+        android:textSize="20sp"
+        android:textStyle="bold"
+
+        />
+
+
+
+</LinearLayout>
 
 </RelativeLayout>

@@ -39,82 +39,9 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static final float MINIMUM_CONFIDENCE_TF_OD_API = 0.3f;
+    int count = 0; // Initialize the counter outside the loop.
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.main);
-
-        cameraButton = findViewById(R.id.cameraButton);
-        detectButton = findViewById(R.id.detectButton);
-        imageView = findViewById(R.id.imageView);
-
-        cameraButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, DetectorActivity.class)));
-
-        Intent intent = getIntent();
-        if (intent != null) {
-            Log.d("MainActivity", "intent != null");
-
-            String path = intent.getStringExtra("path");
-            Log.d("MainActivity", "path: " + path);
-
-            if (path != null) {
-                sourceBitmap = BitmapFactory.decodeFile(path);
-                if (sourceBitmap != null) {
-                    cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
-                    if (cropBitmap != null) {
-                        imageView.setImageBitmap(cropBitmap);
-                    } else {
-                        // Handle the error, show message to the user or log
-                        Log.e("MainActivity", "Failed to process the bitmap.");
-                    }
-                } else {
-                    // Handle the error, show message to the user or log
-                    Log.e("MainActivity", "Failed to load bitmap from assets.");
-                }
-            }
-        }
-
-
-
-
-        detectButton.setOnClickListener(v -> {
-            Handler handler1 = new Handler();
-
-            new Thread(() -> {
-                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
-                handler1.post(new Runnable() {
-                    @Override
-                    public void run() {
-                        handleResult(cropBitmap, results);
-                    }
-                });
-            }).start();
-
-        });
-
-
-        Handler handler = new Handler(Looper.getMainLooper());
-
-        // This will post the Runnable to be executed after 1000 milliseconds (1 second)
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                // Simulate the button click
-                detectButton.performClick();
-            }
-        }, 1000); // 1000 milliseconds delay
-
-
-
-        initBox();
-        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
-        ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
-
-        System.err.println(Double.parseDouble(configurationInfo.getGlEsVersion()));
-        System.err.println(configurationInfo.reqGlEsVersion >= 0x30000);
-        System.err.println(String.format("%X", configurationInfo.reqGlEsVersion));
-    }
+    private Button btnTryAgain, btnSave;
 
     private static final Logger LOGGER = new Logger();
 
@@ -145,6 +72,93 @@ public class MainActivity extends AppCompatActivity {
 
     private Button cameraButton, detectButton;
     private ImageView imageView;
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.main);
+
+        cameraButton = findViewById(R.id.cameraButton);
+        detectButton = findViewById(R.id.detectButton);
+        imageView = findViewById(R.id.imageView);
+        btnTryAgain = findViewById(R.id.btnTryAgain);
+        btnSave = findViewById(R.id.btnSave);
+        btnTryAgain.setOnClickListener(v -> {
+            Intent intent = new Intent(MainActivity.this, DetectorActivity.class);
+            startActivity(intent);
+            finish();
+        });
+
+        cameraButton.setOnClickListener(v -> startActivity(new Intent(MainActivity.this, DetectorActivity.class)));
+
+        Intent intent = getIntent();
+        if (intent != null) {
+            Log.d("MainActivity", "intent != null");
+
+            String path = intent.getStringExtra("path");
+            Log.d("MainActivity", "path: " + path);
+
+            if (path != null) {
+                sourceBitmap = BitmapFactory.decodeFile(path);
+                if (sourceBitmap != null) {
+                    cropBitmap = Utils.processBitmap(sourceBitmap, TF_OD_API_INPUT_SIZE);
+                    if (cropBitmap != null) {
+                        imageView.setImageBitmap(cropBitmap);
+                    } else {
+                        // Handle the error, show message to the user or log
+                        Log.e("MainActivity", "Failed to process the bitmap.");
+                    }
+                } else {
+                    // Handle the error, show message to the user or log
+                    Log.e("MainActivity", "Failed to load bitmap from assets.");
+                }
+            }
+        }
+
+
+        // detectButton.performClick();
+
+
+//        detectButton.setOnClickListener(v -> {
+//            Handler handler1 = new Handler();
+//
+//            new Thread(() -> {
+//                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
+//                handler1.post(new Runnable() {
+//                    @Override
+//                    public void run() {
+//                        handleResult(cropBitmap, results);
+//                    }
+//                });
+//            }).start();
+//
+//        });
+
+
+
+
+        btnSave.setOnClickListener(v -> {
+            Dialog_utils.showFishCountDialog(count, MainActivity.this);
+        });
+
+
+        initBox();
+
+
+
+        ActivityManager activityManager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        ConfigurationInfo configurationInfo = activityManager.getDeviceConfigurationInfo();
+
+        System.err.println(Double.parseDouble(configurationInfo.getGlEsVersion()));
+        System.err.println(configurationInfo.reqGlEsVersion >= 0x30000);
+        System.err.println(String.format("%X", configurationInfo.reqGlEsVersion));
+
+        final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
+        handleResult(cropBitmap, results);
+
+    }
+
+
 
     private void initBox() {
         previewHeight = TF_OD_API_INPUT_SIZE;
@@ -207,7 +221,6 @@ public class MainActivity extends AppCompatActivity {
         final List<Classifier.Recognition> mappedRecognitions =
                 new LinkedList<Classifier.Recognition>();
 
-        int count = 0; // Initialize the counter outside the loop.
 
         for (final Classifier.Recognition result : results) {
             final RectF location = result.getLocation();
@@ -224,10 +237,17 @@ public class MainActivity extends AppCompatActivity {
 
         Log.d("TAG", "Count: " + count);
 
-        Dialog_utils.showFishCountDialog(count, MainActivity.this);
+
 
 //        tracker.trackResults(f, new Random().nextInt());
 //        trackingOverlay.postInvalidate();
         //imageView.setImageBitmap(bitmap);
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+
+
     }
 }

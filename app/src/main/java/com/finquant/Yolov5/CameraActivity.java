@@ -45,6 +45,7 @@ import android.view.ViewTreeObserver;
 import android.view.WindowManager;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.ListView;
@@ -109,6 +110,7 @@ public abstract class CameraActivity extends AppCompatActivity
   int currentModel = -1;
   int currentNumThreads = -1;
 
+  private Button btnCount;
   ArrayList<String> deviceStrings = new ArrayList<String>();
 
   @Override
@@ -119,6 +121,7 @@ public abstract class CameraActivity extends AppCompatActivity
 
     setContentView(R.layout.tfe_od_activity_camera);
     Toolbar toolbar = findViewById(R.id.toolbar);
+    btnCount = findViewById(R.id.btnCount);
     setSupportActionBar(toolbar);
     getSupportActionBar().setDisplayShowTitleEnabled(false);
 
@@ -535,7 +538,7 @@ public abstract class CameraActivity extends AppCompatActivity
       fragment = camera2Fragment;
     } else {
       fragment =
-          new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize());
+          new LegacyCameraConnectionFragment(this, getLayoutId(), getDesiredPreviewFrameSize(), btnCount);
     }
 
     getFragmentManager().beginTransaction().replace(R.id.container, fragment).commit();

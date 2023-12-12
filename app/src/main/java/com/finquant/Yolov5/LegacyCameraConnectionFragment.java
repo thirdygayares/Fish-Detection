@@ -149,12 +149,14 @@ public class LegacyCameraConnectionFragment extends Fragment {
       };
   /** An additional thread for running tasks that shouldn't block the UI. */
   private HandlerThread backgroundThread;
+  private Button btnCount;
 
   public LegacyCameraConnectionFragment(
-      final Camera.PreviewCallback imageListener, final int layout, final Size desiredSize) {
+      final Camera.PreviewCallback imageListener, final int layout, final Size desiredSize, Button btnCount) {
     this.imageListener = imageListener;
     this.layout = layout;
     this.desiredSize = desiredSize;
+    this.btnCount = btnCount;
   }
 
   @Override
@@ -197,8 +199,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
 
   // Method to capture and save image automatically
   private void captureAndSaveImageAutomatically() {
-    Handler captureHandler = new Handler();
-    captureHandler.postDelayed(() -> {
+    btnCount.setOnClickListener(v -> {
       Bitmap capturedBitmap = captureFrame();
       if (capturedBitmap != null) {
         saveImageToStorage(capturedBitmap);
@@ -206,8 +207,10 @@ public class LegacyCameraConnectionFragment extends Fragment {
       } else {
         Log.e("TAG", "Failed to capture image.");
       }
-    }, 20000); // Change delay time as needed
-  }
+    });
+
+    } // Change delay time as needed
+
 
   // Method to capture the current frame from TextureView
   private Bitmap captureFrame() {
