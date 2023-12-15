@@ -167,7 +167,6 @@ public class CheckFish extends AppCompatActivity {
                 if ("Fish".equals(classificationResult) && confidencePercentage >= 98) {
                     //textView.setText("Fish Detected");
                     result = "Fish Detected";
-                    stopCamera(); // Stop the camera here
 
                     Intent intent = new Intent(CheckFish.this, DetectorActivity.class);
 // Right after startActivity(intent); and before finish();
@@ -176,6 +175,7 @@ public class CheckFish extends AppCompatActivity {
 
                     startActivity(intent);
                     overridePendingTransition(R.anim.fade_in, R.anim.fade_out); // Use your own animations
+                    stopCamera(); // Stop the camera here
 
                     finish(); // Call finish to destroy this activity
 
