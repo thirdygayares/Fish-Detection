@@ -73,6 +73,7 @@ public class LegacyCameraConnectionFragment extends Fragment {
   private boolean dialogScheduled = false;
   private boolean dialogShown = false; // Add this flag
   private Handler handler = new Handler();
+  private int imageSize = 224;
 
 
   static {
@@ -199,15 +200,16 @@ public class LegacyCameraConnectionFragment extends Fragment {
 
   // Method to capture and save image automatically
   private void captureAndSaveImageAutomatically() {
-    btnCount.setOnClickListener(v -> {
-      Bitmap capturedBitmap = captureFrame();
-      if (capturedBitmap != null) {
-        saveImageToStorage(capturedBitmap);
+      Handler captureHandler = new Handler();
+      captureHandler.postDelayed(() -> {
+        Bitmap capturedBitmap = captureFrame();
+        if (capturedBitmap != null) {
+          saveImageToStorage(capturedBitmap);
 
-      } else {
-        Log.e("TAG", "Failed to capture image.");
-      }
-    });
+        } else {
+          Log.e("TAG", "Failed to capture image.");
+        }
+      }, 10000);
 
     } // Change delay time as needed
 

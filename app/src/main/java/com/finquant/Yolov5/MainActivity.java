@@ -119,20 +119,33 @@ public class MainActivity extends AppCompatActivity {
         // detectButton.performClick();
 
 
-//        detectButton.setOnClickListener(v -> {
-//            Handler handler1 = new Handler();
-//
-//            new Thread(() -> {
-//                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
-//                handler1.post(new Runnable() {
-//                    @Override
-//                    public void run() {
-//                        handleResult(cropBitmap, results);
-//                    }
-//                });
-//            }).start();
-//
-//        });
+        detectButton.setOnClickListener(v -> {
+            Handler handler1 = new Handler();
+
+            new Thread(() -> {
+                final List<Classifier.Recognition> results = detector.recognizeImage(cropBitmap);
+                handler1.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        handleResult(cropBitmap, results);
+                    }
+                });
+            }).start();
+
+        });
+
+        Handler handler = new Handler();
+
+        // This will post the Runnable to be executed after 1000 milliseconds (1 second)
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                // Simulate the button click
+                detectButton.performClick();
+            }
+        }, 1000); // 1000 milliseconds delay
+
+
 
 
 
@@ -238,7 +251,7 @@ public class MainActivity extends AppCompatActivity {
         Log.d("TAG", "Count: " + count);
 
 
-
+        Dialog_utils.showFishCountDialog(count, MainActivity.this);
 //        tracker.trackResults(f, new Random().nextInt());
 //        trackingOverlay.postInvalidate();
         //imageView.setImageBitmap(bitmap);
