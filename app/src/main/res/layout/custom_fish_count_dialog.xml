@@ -7,6 +7,18 @@
     android:background="@color/blue1"
     android:padding="16dp">
 
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textColor="@color/black"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:fontFamily="@font/century_gothic"
+        android:textSize="15dp"
+        android:textStyle="bold"
+        android:text="Please enter Tank Name"/>
+
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_marginTop="20dp"
@@ -23,6 +35,7 @@
         android:textStyle="bold"
         android:layout_marginTop="15dp"
         android:gravity="center"
+        android:visibility="gone"
         android:textColor="@color/black"
         android:layout_gravity="center"
         android:fontFamily="@font/century_gothic"

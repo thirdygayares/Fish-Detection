@@ -17,15 +17,13 @@
         android:layout_weight="1" />
 
     <TextView
-    android:id="@+id/textView"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="No Fish Detected"
-    android:textColor="@color/white"
-    android:textSize="30sp"
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="No Fish Detected"
+        android:textColor="@color/white"
+        android:textSize="30sp"
         android:padding="80dp"
-
-        android:textAlignment="center"
-        />
+        android:textAlignment="center"/>
 
 </LinearLayout>

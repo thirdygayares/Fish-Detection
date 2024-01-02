@@ -1,0 +1,46 @@
+<RelativeLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content">
+
+    <TextView
+        android:id="@+id/tankNameTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="10dp"
+        android:textStyle="bold"
+        android:fontFamily="@font/century_gothic"
+        android:text="Tank Name:"
+        android:textSize="15sp"
+        android:textColor="@color/black"/>
+
+    <TextView
+        android:id="@+id/dateAndTimeTextView"
+        android:layout_width="match_parent"
+        android:layout_marginStart="20dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:fontFamily="@font/century_gothic"
+        android:layout_below="@+id/tankNameTextView"
+        android:text="Date and Time:"
+        android:textSize="12sp"
+        android:textColor="@color/black"/>
+
+    <TextView
+        android:id="@+id/fishCountTextView"
+        android:layout_width="match_parent"
+        android:layout_marginStart="20dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:fontFamily="@font/century_gothic"
+        android:layout_below="@+id/dateAndTimeTextView"
+        android:text="Fish Count:"
+        android:textSize="12sp"
+        android:textColor="@color/black"/>
+    <View
+        android:layout_width="10000dp"
+        android:layout_height="3dp"
+        android:layout_marginTop="5dp"
+        android:layout_below="@id/fishCountTextView"
+        android:background="@color/black" />
+</RelativeLayout>

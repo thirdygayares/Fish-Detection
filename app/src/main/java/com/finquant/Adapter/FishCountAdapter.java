@@ -4,6 +4,8 @@ import android.annotation.SuppressLint;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
+import android.content.Intent;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,23 +27,38 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
+import com.itextpdf.text.Document;
+import com.itextpdf.text.Paragraph;
+import com.itextpdf.text.pdf.PdfWriter;
 import com.m.motion_2.R;
 
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.FileOutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
 public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.ViewHolder> {
 
     private Context context;
     private List<FishCountModel> fishCountList;
+    private boolean isRowView;
 
-    public FishCountAdapter(Context context, List<FishCountModel> fishCountList) {
+    public FishCountAdapter(Context context, List<FishCountModel> fishCountList, boolean isRowView) {
         this.context = context;
         this.fishCountList = fishCountList;
+        this.isRowView = isRowView; // Initializing the isRowView field
     }
+
 
     @NonNull
     @Override
     public ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.your_list_item_layout, parent, false);
+        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.grid_layout, parent, false);
         return new ViewHolder(view);
     }
 
@@ -56,6 +73,13 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         // Set the integer fish count directly in the TextView
         holder.setFishCount("Fish count: " + fishCountModel.getFishCount());
 
+        if (isRowView) {
+            // Hide the extra view in the grid layout
+            holder.hideExtraView();
+        } else {
+            // Show the extra view in the row layout
+            holder.showExtraView();
+        }
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -69,14 +93,20 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
     private void showOptionsDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Options");
-        builder.setItems(new CharSequence[]{"Rename", "Archive Tank"}, new DialogInterface.OnClickListener() {
+        builder.setItems(new CharSequence[]{"Count", "Rename Tank","Delete","Generate Manual PDF"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
-                        showRenameProgressDialog(position);
+                        break;
                     case 1:
-                        showArchiveProgressDialog(position);
+                        showRenameProgressDialog(position);
+                        break;
+                    case 2:
+                        showDelete(position);
+                        break;
+                    case 3:
+                        ShowgeneratedPdf(position);
                         break;
                 }
             }
@@ -84,6 +114,194 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
 
         builder.create().show();
     }
+
+    private void ShowgeneratedPdf(int position) {
+        if (position >= 0 && position < fishCountList.size()) {
+            FishCountModel fishCountModel = fishCountList.get(position);
+
+            // Generate PDF for the specific FishCountModel
+            try {
+                // Create a Document
+                Document document = new Document();
+
+                // Specify the file path for the PDF
+                String filePath = context.getFilesDir() + "/output_" + fishCountModel.getTankName() + ".pdf";
+
+                // Create a PdfWriter instance
+                PdfWriter.getInstance(document, new FileOutputStream(filePath));
+
+                // Open the document
+                document.open();
+
+                // Convert the data to the format you want to upload (e.g., to a JSON string)
+                String dataToUpload = convertFishCountModelToJson(fishCountModel);
+
+                // Add content to the document (e.g., your JSON data)
+                Paragraph paragraph = new Paragraph(dataToUpload);
+                document.add(paragraph);
+
+                // Close the document
+                document.close();
+
+                // Read the generated PDF as bytes
+                byte[] pdfData = new byte[0];
+
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
+                    pdfData = Files.readAllBytes(Paths.get(filePath));
+                }
+
+                // Specify the storage path in Firebase Storage where you want to upload the PDF
+                String storagePath = "Tank List/" + fishCountModel.getTankName() + "_List.pdf";
+
+                // Upload the generated PDF to Firebase Storage
+                uploadDataToFirebaseStorage(pdfData, storagePath);
+
+                Toast.makeText(context, "PDF generated and uploaded successfully", Toast.LENGTH_SHORT).show();
+
+            } catch (Exception e) {
+                e.printStackTrace();
+                Toast.makeText(context, "PDF generation and upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        } else {
+            // Handle invalid position
+            Toast.makeText(context, "Invalid position", Toast.LENGTH_SHORT).show();
+        }
+    }
+
+    private String convertFishCountModelToJson(FishCountModel fishCountModel) {
+        // Create a JSON object or string representation of the FishCountModel data
+        JSONObject jsonObject = new JSONObject();
+        try {
+            jsonObject.put("tankName", fishCountModel.getTankName());
+            jsonObject.put("fishCount", fishCountModel.getFishCount());
+            jsonObject.put("timestamp", fishCountModel.getTimestamp());
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+
+        return jsonObject.toString();
+    }
+
+    private void uploadDataToFirebaseStorage(byte[] pdfData, String storagePath) {
+        // Get a reference to your Firebase Storage
+        FirebaseStorage storage = FirebaseStorage.getInstance();
+
+        // Create a storage reference
+        StorageReference storageRef = storage.getReference();
+
+        // Create a reference to the file in Firebase Storage
+        StorageReference dataRef = storageRef.child(storagePath);
+
+        // Upload the PDF data to Firebase Storage
+        UploadTask uploadTask = dataRef.putBytes(pdfData);
+
+        uploadTask.addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {
+                // Data uploaded successfully
+                Toast.makeText(context, "Data uploaded to Firebase Storage", Toast.LENGTH_SHORT).show();
+
+                // Get the download URL of the uploaded file
+                dataRef.getDownloadUrl().addOnSuccessListener(new OnSuccessListener<Uri>() {
+                    @Override
+                    public void onSuccess(Uri uri) {
+                        // Create an intent to open the web browser and let the user download the file
+                        Intent intent = new Intent(Intent.ACTION_VIEW);
+                        intent.setData(uri);
+                        context.startActivity(intent);
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                // Handle the upload failure
+                Toast.makeText(context, "Data upload failed: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            }
+        });
+    }
+
+
+
+    private void showDelete(final int position) {
+        FishCountModel fishCountModel = fishCountList.get(position);
+        String TankName = fishCountModel.getTankName();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(context);
+        builder.setTitle("Delete Tank?");
+        builder.setMessage("Are you sure you want to Archive Tank name: "+ TankName);
+
+        builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                showDeleteProgressDialog(position);
+            }
+        });
+
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+            }
+        });
+
+        builder.create().show();
+    }
+
+    private void showDeleteProgressDialog(final int position) {
+        final ProgressDialog progressDialog = new ProgressDialog(context);
+        progressDialog.setMessage("Deleting Tank...");
+        progressDialog.show();
+
+        // Get the tank name of the tank you want to delete
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            // Get the tank name of the tank you want to delete
+            FishCountModel fishCountModel = fishCountList.get(position);
+            String tankNameToDelete = fishCountModel.getTankName();
+            String userId = currentUser.getUid();
+
+            // Create a Firebase reference to the "archived_tank" node for the current user
+            FirebaseDatabase database = FirebaseDatabase.getInstance();
+            DatabaseReference tankRef = database.getReference("tank").child(userId);
+
+            // Query for the tank to delete based on tankName
+            tankRef.orderByChild("tankName").equalTo(tankNameToDelete).addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                        // Remove the matching tank node
+                        tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
+                            @Override
+                            public void onSuccess(Void aVoid) {
+                                Toast.makeText(context, "Tank delete Success Tank Name: " + tankNameToDelete, Toast.LENGTH_SHORT).show();
+                                progressDialog.dismiss();
+                                notifyDataSetChanged();// Dismiss the progress dialog
+                            }
+                        }).addOnFailureListener(new OnFailureListener() {
+                            @Override
+                            public void onFailure(@NonNull Exception e) {
+                                Toast.makeText(context, "Error delete Tank Name: " + tankNameToDelete, Toast.LENGTH_SHORT).show();
+                                progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                                // Handle the error if the deletion fails
+                            }
+                        });
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                    // Handle any errors or onCancelled events
+                }
+            });
+        } else {
+            progressDialog.dismiss(); // Dismiss the progress dialog if the user is not authenticated
+            Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show();
+        }
+    }
+
 
     private void showArchiveProgressDialog(final int position) {
         FishCountModel fishCountModel = fishCountList.get(position);
@@ -178,10 +396,14 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Rename Tank");
 
+        // Get the current tank name
+        FishCountModel fishCountModel = fishCountList.get(position);
+        String oldTankName = fishCountModel.getTankName();
+
         final EditText newTankNameInput = new EditText(context);
         newTankNameInput.setHint("Enter New Tank Name");
+        newTankNameInput.setText(oldTankName);
         builder.setView(newTankNameInput);
-
         builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -211,7 +433,9 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
                                                     progressDialog.dismiss();
                                                     notifyDataSetChanged();
                                                     // Dismiss the progress dialog
-                                                    // You may also want to update the UI or the data source to reflect the new tank name.
+
+                                                    //old tank name toast message to new tank name
+                                                    Toast.makeText(context, "Renamed Tank: " + oldTankName + " to " + newTankName, Toast.LENGTH_SHORT).show();
                                                 }
                                             }).addOnFailureListener(new OnFailureListener() {
                                                 @Override
@@ -250,151 +474,6 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         builder.create().show();
     }
 
-//    private void showDeleteProgressDialog(final int position) {
-//        final ProgressDialog progressDialog = new ProgressDialog(context);
-//        progressDialog.setMessage("Deleting Tank...");
-//        progressDialog.show();
-//
-//        // Get the tank name of the tank you want to delete
-//        FishCountModel fishCountModel = fishCountList.get(position);
-//        String tankNameToDelete = fishCountModel.getTankName();
-//
-//        // Create a Firebase reference to the "tank" node
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference tankRef = database.getReference("tank");
-//
-//        // Query for the tank to delete based on tankName
-//        tankRef.orderByChild("tankName").equalTo(tankNameToDelete).addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
-//                    // Remove the matching tank node
-//                    tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-//                        @Override
-//                        public void onSuccess(Void aVoid) {
-//                            progressDialog.dismiss();
-//                            notifyDataSetChanged();// Dismiss the progress dialog
-//                            // Successfully deleted the tank by tankName
-//                            // You may also want to update the UI or the data source to reflect the deletion.
-//                        }
-//                    }).addOnFailureListener(new OnFailureListener() {
-//                        @Override
-//                        public void onFailure(@NonNull Exception e) {
-//                            progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
-//                            // Handle the error if the deletion fails
-//                        }
-//                    });
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
-//                // Handle any errors or onCancelled events
-//            }
-//        });
-//    }
-//
-//    private void deleteItem(int position) {
-//        // Get the tank name of the tank you want to delete
-//        FishCountModel fishCountModel = fishCountList.get(position);
-//        String tankNameToDelete = fishCountModel.getTankName();
-//
-//        // Create a Firebase reference to the "tank" node
-//        FirebaseDatabase database = FirebaseDatabase.getInstance();
-//        DatabaseReference tankRef = database.getReference("tank");
-//
-//        // Query for the tank to delete based on tankName
-//        tankRef.orderByChild("tankName").equalTo(tankNameToDelete).addListenerForSingleValueEvent(new ValueEventListener() {
-//            @Override
-//            public void onDataChange(DataSnapshot dataSnapshot) {
-//                for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
-//                    // Remove the matching tank node
-//                    tankSnapshot.getRef().removeValue().addOnSuccessListener(new OnSuccessListener<Void>() {
-//                        @Override
-//                        public void onSuccess(Void aVoid) {
-//                            // Successfully deleted the tank by tankName
-//                        }
-//                    }).addOnFailureListener(new OnFailureListener() {
-//                        @Override
-//                        public void onFailure(@NonNull Exception e) {
-//                            // Handle the error if the deletion fails
-//                        }
-//                    });
-//                }
-//            }
-//
-//            @Override
-//            public void onCancelled(DatabaseError databaseError) {
-//                // Handle any errors or onCancelled events
-//            }
-//        });
-//    }
-
-
-    private void renameTankName(final int position) {
-        AlertDialog.Builder builder = new AlertDialog.Builder(context);
-        builder.setTitle("Rename Tank");
-
-        final EditText newTankNameInput = new EditText(context);
-        newTankNameInput.setHint("Enter New Tank Name");
-        builder.setView(newTankNameInput);
-
-        builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                String newTankName = newTankNameInput.getText().toString().trim();
-                if (!newTankName.isEmpty()) {
-                    // Get the old tank name
-                    FishCountModel fishCountModel = fishCountList.get(position);
-                    String oldTankName = fishCountModel.getTankName();
-
-                    // Create a Firebase reference to the "tank" node
-                    FirebaseDatabase database = FirebaseDatabase.getInstance();
-                    DatabaseReference tankRef = database.getReference("tank");
-
-                    // Query for the tank to rename based on oldTankName
-                    tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
-                                // Update the "tankName" field with the newTankName
-                                tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                    @Override
-                                    public void onSuccess(Void aVoid) {
-                                        // Successfully renamed the tank by tankName
-                                        // You may also want to update the UI or the data source to reflect the new tank name.
-                                    }
-                                }).addOnFailureListener(new OnFailureListener() {
-                                    @Override
-                                    public void onFailure(@NonNull Exception e) {
-                                        // Handle the error if the renaming fails
-                                    }
-                                });
-                            }
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-                            // Handle any errors or onCancelled events
-                        }
-                    });
-                } else {
-                    Toast.makeText(context, "New tank name is required", Toast.LENGTH_SHORT).show();
-                }
-            }
-        });
-
-        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.dismiss();
-            }
-        });
-
-        builder.create().show();
-    }
-
 
     @Override
     public int getItemCount() {
@@ -406,16 +485,22 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         notifyDataSetChanged();
     }
 
+    public void setLayout(boolean isRowView) {
+        this.isRowView = isRowView;
+        notifyDataSetChanged();
+    }
+
     public class ViewHolder extends RecyclerView.ViewHolder {
         private TextView fishCountTextView;
         private TextView timestampTextView;
         private TextView tankNameTextView;
-
+        private View extraView;
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
             fishCountTextView = itemView.findViewById(R.id.fishCountTextView);
             timestampTextView = itemView.findViewById(R.id.dateAndTimeTextView);
             tankNameTextView = itemView.findViewById(R.id.tankNameTextView);
+            extraView = itemView.findViewById(R.id.extra_view);
         }
 
         public void setFishCount(String fishCount) {
@@ -428,6 +513,13 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
 
         public void setTankName(String tankName) {
             tankNameTextView.setText(tankName);
+        }
+        public void hideExtraView() {
+            extraView.setVisibility(View.VISIBLE);
+        }
+
+        public void showExtraView() {
+            extraView.setVisibility(View.GONE);
         }
     }
 }

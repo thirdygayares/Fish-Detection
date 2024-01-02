@@ -22,6 +22,7 @@ import android.widget.Spinner;
 import android.widget.Toast;
 
 import com.finquant.Adapter.FishCountAdapter;
+import com.finquant.Adapter.FishCountAdapter2;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -54,7 +55,7 @@ import java.util.Locale;
 public class Fish_count_list extends AppCompatActivity {
     private RecyclerView recyclerView;
     private DatabaseReference databaseReference;
-    private FishCountAdapter adapter;
+    private FishCountAdapter2 adapter;
     FloatingActionButton back, upload;
     private List<FishCountModel> fishCountList;
 
@@ -77,7 +78,7 @@ public class Fish_count_list extends AppCompatActivity {
             databaseReference = FirebaseDatabase.getInstance().getReference("tank");
             fishCountList = new ArrayList<>();
             upload = findViewById(R.id.download);
-            adapter = new FishCountAdapter(this, fishCountList);
+            adapter = new FishCountAdapter2(this, fishCountList);
             recyclerView.setAdapter(adapter);
 
             FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();

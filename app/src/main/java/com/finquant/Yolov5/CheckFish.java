@@ -24,6 +24,7 @@ import android.util.Size;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.finquant.Activity.front_page;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.m.motion_2.R;
 import com.m.motion_2.ml.Classification;
@@ -219,6 +220,12 @@ public class CheckFish extends AppCompatActivity {
         super.onDestroy();
         stopCamera(); // Ensure the camera is stopped when the activity is destroyed
     }
-
+  public void onBackPressed(){
+        Intent i = new Intent(getApplicationContext(), front_page.class);
+        startActivity(i);
+        finish();
+        overridePendingTransition(0,0);
+        super.onBackPressed();
+  }
 
 }

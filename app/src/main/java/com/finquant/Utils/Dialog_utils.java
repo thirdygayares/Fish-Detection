@@ -109,6 +109,57 @@ public class Dialog_utils {
         dialog.show();
     }
 
+
+    public static void showFishCountDialog2(final int fishCount, Activity activity) {
+        View contentView = activity.getLayoutInflater().inflate(R.layout.custom_fish_count_dialog, null);
+        TextView fishCountTextView = contentView.findViewById(R.id.fishCountTextView);
+        EditText tankNameInput = contentView.findViewById(R.id.tankNameInput);
+        fishCountTextView.setText(String.valueOf(fishCount));
+        DialogPlus dialog = DialogPlus.newDialog(activity)
+                .setContentHolder(new ViewHolder(contentView))
+                .setFooter(R.layout.dialog_footer)
+                .setGravity(Gravity.CENTER)
+                .setCancelable(false)
+                .setExpanded(false)
+                .setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
+                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(DialogPlus dialog, View view) {
+                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+                        if (view.getId() == R.id.saveButton && currentUser != null) {
+                            String tankName = tankNameInput.getText().toString().trim();
+                            if (!tankName.isEmpty()) {
+                                // Get the current date and time
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+                                String currentDateTime = dateFormat.format(new Date());
+
+                                // Create a Firebase reference to the "user_tanks" node under the current user's ID
+                                String userId = currentUser.getUid();
+                                DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
+
+                                // Set the fish count, tank name, and timestamp as child values in a single node
+                                DatabaseReference newFishCountRef = userTanksRef.push();
+                                newFishCountRef.child("tankName").setValue(tankName);
+                                newFishCountRef.child("fishCount").setValue(fishCount);
+                                newFishCountRef.child("timeStamp").setValue(currentDateTime);
+                                tankNameInput.getText().clear();
+                                Toast.makeText(activity.getApplicationContext(), "Fish count saved successfully in tank name: " + tankName, Toast.LENGTH_SHORT).show();
+                            } else {
+                                Toast.makeText(activity.getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
+                            }
+                        } else if (view.getId() == R.id.cancelButton) {
+                           dialog.dismiss();                       }
+                    }
+                })
+                .create();
+
+        dialog.show();
+    }
+
+
+
     //logout_dialog
     public void logout(Activity activity){
         View contentView = LayoutInflater.from(activity).inflate(R.layout.logout_dialog, null);

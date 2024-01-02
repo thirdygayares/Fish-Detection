@@ -1,82 +1,159 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.drawerlayout.widget.DrawerLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/front23"
+    android:id="@+id/drawer_layout"
     tools:context="com.finquant.Activity.front_page">
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="center"
-        android:layout_marginTop="50dp"
+        android:layout_marginTop="70dp"
         android:layout_gravity="center"
         android:orientation="vertical">
-        <ImageView
-            android:layout_width="200dp"
-            android:layout_height="100dp"
-            android:src="@mipmap/logofin"/>
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="20dp">
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/count_fish"
-                android:layout_width="250dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/oblong_btn"
-                android:layout_centerHorizontal="true"
-                android:textColor="@color/white"
-                android:fontFamily="@font/century_gothic"
-                android:textStyle="bold"
-                android:textAllCaps="false"
-                android:textSize="20dp"
-                android:text="Count fish"/>
-            <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/tank_list"
-                android:layout_width="250dp"
-                android:layout_height="wrap_content"
-                android:background="@drawable/oblong_btn"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@id/count_fish"
-                android:layout_marginTop="25dp"
-                android:textColor="@color/white"
-                android:fontFamily="@font/century_gothic"
-                android:textStyle="bold"
-                android:textAllCaps="false"
-                android:textSize="20dp"
-                android:text="Tank list"/>
+            android:layout_height="match_parent">
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/archive_tank"
-                android:layout_width="250dp"
+                android:id="@+id/cardbtn"
+                android:layout_width="120dp"
                 android:layout_height="wrap_content"
-                android:background="@drawable/oblong_btn"
-                android:layout_centerHorizontal="true"
-                android:layout_below="@id/tank_list"
-                android:layout_marginTop="25dp"
-                android:textColor="@color/white"
-                android:fontFamily="@font/century_gothic"
-                android:textStyle="bold"
+                android:layout_alignParentEnd="true"
+                android:text="Count Fish"
+                android:textSize="15dp"
                 android:textAllCaps="false"
-                android:textSize="20dp"
-                android:text="Archive tank list"/>
+                android:layout_marginTop="80dp"
+                android:textColor="@color/white"
+                android:layout_marginRight="10dp"
+                android:background="@drawable/oblong_btn"/>
 
-            <TextView
-                android:id="@+id/logout"
+            <androidx.cardview.widget.CardView
+                android:layout_width="170dp"
+                android:id="@+id/searching"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/cardbtn"
+                android:layout_marginStart="10dp"
+                android:layout_marginTop="20dp"
+                app:cardCornerRadius="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="@color/white">
+
+                    <EditText
+                        android:id="@+id/search"
+                        android:layout_width="170dp"
+                        android:layout_height="match_parent"
+                        android:layout_marginStart="5dp"
+                        android:hint="Search Tank Name"
+                        android:textColor="@color/black"/>
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+<androidx.appcompat.widget.AppCompatButton
+    android:id="@+id/addtank"
+    android:layout_width="120dp"
+    android:layout_height="wrap_content"
+    android:drawableLeft="@drawable/baseline_add_24"
+    android:text="Add Tank"
+    android:layout_marginTop="15dp"
+    android:textColor="@color/white"
+    android:layout_below="@+id/searching"
+    android:layout_marginStart="20dp"
+    android:textAllCaps="false"
+    android:background="@drawable/oblong_btn"/>
+
+            <ImageButton
+                android:id="@+id/rowView"
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="15dp"
+                android:src="@mipmap/rowview"
+                android:layout_marginRight="110dp"
+                android:textColor="@color/white"
+                android:layout_below="@+id/searching"
+                android:layout_alignParentEnd="true"
+                android:textAllCaps="false"
+                android:background="@drawable/oblong_btn2"/>
+
+            <ImageButton
+                android:id="@+id/gridView"
+                android:layout_width="70dp"
+                android:layout_height="50dp"
+                android:layout_marginTop="15dp"
+                android:src="@mipmap/gridview"
+                android:layout_marginRight="20dp"
+                android:textColor="@color/white"
+                android:layout_below="@+id/searching"
+                android:layout_alignParentEnd="true"
+                android:textAllCaps="false"
+                android:background="@drawable/oblong_btn2"/>
+
+            <androidx.cardview.widget.CardView
+                android:id="@+id/card1"
+                android:layout_width="130dp"
+                android:layout_height="wrap_content"
+                android:layout_alignParentEnd="true"
+                android:layout_marginTop="20dp"
+                android:layout_below="@+id/cardbtn"
+                android:layout_marginRight="15dp"
+                app:cardCornerRadius="20dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:background="@color/white">
+                    <Spinner
+                        android:id="@+id/Spinner"
+                        android:layout_width="wrap_content"
+                        android:layout_height="50dp" />
+                </LinearLayout>
+            </androidx.cardview.widget.CardView>
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:id="@+id/linear2"
+                    android:layout_below="@id/card1"
+                    android:layout_marginTop="70dp"
+                    android:layout_marginBottom="20dp"
+                    android:layout_height="350dp"
+                    android:background="@color/white">
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/recyclerTank"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent" />
+                </LinearLayout>
+
+            <com.google.android.material.floatingactionbutton.FloatingActionButton
+                android:id="@+id/download"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/archive_tank"
-                android:layout_marginTop="25dp"
-                android:textColor="@color/white"
-                android:textSize="18dp"
-                android:textStyle="bold"
-                android:fontFamily="@font/century_gothic"
-                android:layout_marginBottom="20dp"
-                android:layout_centerHorizontal="true"
-                android:text="Logout"/>
+                android:backgroundTint="@color/blue1"
+                android:layout_marginTop="535dp"
+                android:layout_alignParentEnd="true"
+                android:layout_marginEnd="25dp"
+                android:src="@drawable/folder"/>
 
         </RelativeLayout>
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+    </androidx.core.widget.NestedScrollView>
+
+    <com.google.android.material.navigation.NavigationView
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        app:headerLayout="@layout/activity_header3"
+        app:menu="@menu/mainmenu"
+        android:id="@+id/nav_view"
+        android:layout_gravity="start"/>
+
+</androidx.drawerlayout.widget.DrawerLayout>

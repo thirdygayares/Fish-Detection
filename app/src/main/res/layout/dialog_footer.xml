@@ -29,6 +29,7 @@
         android:layout_height="wrap_content"
         android:layout_weight="1"
         android:text="Try Again"
+        android:visibility="gone"
         android:textSize="15sp"
         android:fontFamily="@font/century_gothic"
         android:textAllCaps="false"

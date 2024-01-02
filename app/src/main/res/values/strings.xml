@@ -1,4 +1,8 @@
 <resources>
+
+    <string name="open">Open Navigation Drawer</string>
+    <string name="close">Close Navigation Drawer</string>
+
     <string name="app_name">FinQuant</string>
     <string name="Open_settings">App Settings</string>
     <string name="foreground">Tap confirm and go to battery usage</string>
