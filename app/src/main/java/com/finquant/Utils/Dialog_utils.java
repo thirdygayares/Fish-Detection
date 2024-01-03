@@ -15,6 +15,8 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+
 import com.finquant.Activity.CountAct;
 import com.finquant.Activity.front_page;
 import com.finquant.Activity.login;
@@ -102,6 +104,72 @@ public class Dialog_utils {
                             activity.startActivity(i);
                             activity.overridePendingTransition(0, 0);
                             countAct.finishActivity();                        }
+                    }
+                })
+                .create();
+
+        dialog.show();
+    }
+
+    public static void showFishCountDialog3(final AppCompatActivity activity, final int fishCount) {
+        View contentView = activity.getLayoutInflater().inflate(R.layout.custom_fish_count_dialog4, null);
+        TextView fishCountTextView = contentView.findViewById(R.id.fishCountTextView);
+        EditText tankNameInput = contentView.findViewById(R.id.tankNameInput);
+        fishCountTextView.setText(String.valueOf(fishCount));
+        CountAct countAct = new CountAct();
+        DialogPlus dialog = DialogPlus.newDialog(activity)
+                .setContentHolder(new ViewHolder(contentView))
+                .setHeader(R.layout.dialog_header)
+                .setFooter(R.layout.dialog_footer)
+                .setGravity(Gravity.CENTER)
+                .setCancelable(false)
+                .setExpanded(false)
+                .setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
+                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(DialogPlus dialog, View view) {
+                        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+
+                        if (view.getId() == R.id.saveButton && currentUser != null) {
+                            String tankName = tankNameInput.getText().toString().trim();
+                            if (!tankName.isEmpty()) {
+                                // Get the current date and time
+                                SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
+                                String currentDateTime = dateFormat.format(new Date());
+
+                                // Create a Firebase reference to the "user_tanks" node under the current user's ID
+                                String userId = currentUser.getUid();
+                                DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
+
+                                // Set the fish count, tank name, and timestamp as child values in a single node
+                                DatabaseReference newFishCountRef = userTanksRef.push();
+                                newFishCountRef.child("tankName").setValue(tankName);
+                                newFishCountRef.child("fishCount").setValue(fishCount);
+                                newFishCountRef.child("timeStamp").setValue(currentDateTime);
+
+                                // Show a success toast message
+                                Toast.makeText(activity.getApplicationContext(), "Fish count saved successfully in tank name: " + tankName, Toast.LENGTH_SHORT).show();
+                                Intent i = new Intent(activity.getApplicationContext(), front_page.class);
+                                countAct.reinitializeCamera();
+                                countAct.onCameraViewStopped();
+                                activity.startActivity(i);
+                                activity.overridePendingTransition(0, 0  );
+                                countAct.finishActivity(); // Close the dialog after saving
+                            } else {
+                                Toast.makeText(activity.getApplicationContext(), "Tank name is required", Toast.LENGTH_SHORT).show();
+                            }
+                        } else if (view.getId() == R.id.tryAgainButton) {
+                            Intent i = new Intent(activity.getApplicationContext(), CheckFish.class);
+                            countAct.reinitializeCamera();
+                            countAct.onCameraViewStopped();
+                            activity.startActivity(i);
+                            activity.overridePendingTransition(0, 0);
+                            countAct.finishActivity();
+                        } else if (view.getId() == R.id.cancelButton) {
+                            dialog.dismiss();
+                        }
+
                     }
                 })
                 .create();

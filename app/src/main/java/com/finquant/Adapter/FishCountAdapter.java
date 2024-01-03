@@ -1,6 +1,7 @@
 package com.finquant.Adapter;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.DialogInterface;
@@ -18,6 +19,8 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.finquant.Class.FishCountModel;
+import com.finquant.Yolov5.CameraActivity;
+import com.finquant.Yolov5.CheckFish;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -98,6 +101,7 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
                     case 0:
+                        startCameraActivity(position);
                         break;
                     case 1:
                         showRenameProgressDialog(position);
@@ -114,6 +118,23 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
 
         builder.create().show();
     }
+
+    private void startCameraActivity(int position) {
+        FishCountModel fishCountModel = fishCountList.get(position);
+        String tankName = fishCountModel.getTankName();
+        Intent intent = new Intent(context, CheckFish.class);
+        // Pass the tank name as an extra to the intent
+        intent.putExtra("tankName", tankName);
+        // Start the CameraActivity
+        context.startActivity(intent);
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            activity.overridePendingTransition(0, 0);
+            activity.finish();
+        }
+    }
+
+
 
     private void ShowgeneratedPdf(int position) {
         if (position >= 0 && position < fishCountList.size()) {

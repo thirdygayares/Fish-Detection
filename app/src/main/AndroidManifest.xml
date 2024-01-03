@@ -38,7 +38,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Motion_2"
         tools:targetApi="31">
-
+        <activity
+            android:name="com.finquant.Yolov5.CheckFish2"
+            android:exported="false" />
         <activity
             android:name="com.finquant.Activity.Fish_count_list2"
             android:exported="false">
@@ -76,15 +78,12 @@
             android:name="com.finquant.Yolov5.DetectorActivity"
             android:exported="false"
             android:theme="@style/AppTheme" />
-
         <activity
             android:name="com.finquant.Yolov5.CheckFish"
             android:exported="false"
             android:theme="@style/AppTheme" />
-
         <activity
             android:name="com.finquant.Activity.SplashActivity"
-
             android:exported="true"
             android:theme="@style/AppTheme"> <!-- Set screenOrientation to portrait -->
             <intent-filter>

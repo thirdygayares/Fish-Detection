@@ -24,7 +24,7 @@
             android:layout_height="match_parent">
 
             <androidx.appcompat.widget.AppCompatButton
-                android:id="@+id/cardbtn"
+                android:id="@+id/counts"
                 android:layout_width="120dp"
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
@@ -40,7 +40,7 @@
                 android:layout_width="170dp"
                 android:id="@+id/searching"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/cardbtn"
+                android:layout_below="@+id/counts"
                 android:layout_marginStart="10dp"
                 android:layout_marginTop="20dp"
                 app:cardCornerRadius="20dp">
@@ -105,7 +105,7 @@
                 android:layout_height="wrap_content"
                 android:layout_alignParentEnd="true"
                 android:layout_marginTop="20dp"
-                android:layout_below="@+id/cardbtn"
+                android:layout_below="@+id/counts"
                 android:layout_marginRight="15dp"
                 app:cardCornerRadius="20dp">
 

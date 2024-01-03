@@ -36,6 +36,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.finquant.Adapter.FishCountAdapter;
 import com.finquant.Class.FishCountModel;
 import com.finquant.Utils.Dialog_utils;
+import com.finquant.Yolov5.CheckFish2;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -76,7 +77,7 @@ public class front_page extends AppCompatActivity {
     private DatabaseReference databaseReference;
     private static final String CONFIRMED ="CONFIRMED";
     private RecyclerView recyclerView;
-    private AppCompatButton addTankbtn;
+    private AppCompatButton addTankbtn,countsBtn;
     private FishCountAdapter adapter;
     private List<FishCountModel> fishCountList;
     Dialog_utils dialogUtils;
@@ -98,6 +99,7 @@ public class front_page extends AppCompatActivity {
         setContentView(R.layout.activity_front_page);
         changeStatusBarColor(getResources().getColor(R.color.superBlue));
         upload = findViewById(R.id.download);
+        countsBtn = findViewById(R.id.counts);
         navigationView = findViewById(R.id.nav_view);
         drawerLayout = findViewById(R.id.drawer_layout);
         drawerToggle = new ActionBarDrawerToggle(this, drawerLayout, R.string.open, R.string.close);
@@ -150,6 +152,15 @@ public class front_page extends AppCompatActivity {
 //                startActivity(intent);
 //            }
 
+        countsBtn.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent count = new Intent(getApplicationContext(), CheckFish2.class);
+                startActivity(count);
+                finish();
+                overridePendingTransition(0,0);
+            }
+        });
         upload.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
