@@ -54,8 +54,8 @@ public class Dialog_utils {
                 .setGravity(Gravity.CENTER)
                 .setCancelable(false)
                 .setExpanded(false)
-                .setContentWidth(ViewGroup.LayoutParams.WRAP_CONTENT)
-                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
+                .setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
+                .setContentHeight(ViewGroup.LayoutParams.MATCH_PARENT)
                 .setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(DialogPlus dialog, View view) {

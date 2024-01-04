@@ -44,7 +44,7 @@ dependencies {
     implementation 'com.google.firebase:firebase-storage-ktx:20.2.1'
     implementation 'org.tensorflow:tensorflow-lite-support:0.1.0'
     implementation 'org.tensorflow:tensorflow-lite-metadata:0.1.0'
-    implementation project(path: ':OpenCv23')
+    implementation project(path: ':OpenCv')
     testImplementation 'junit:junit:4.13.2'
     implementation 'com.airbnb.android:lottie:3.6.1'
     androidTestImplementation 'androidx.test.ext:junit:1.1.3'

@@ -57,7 +57,7 @@ import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class CheckFish extends AppCompatActivity {
-
+    private boolean isFishDetected = false;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private TextView textView,timeText; // For displaying classification result
     private PreviewView viewFinder;
@@ -93,7 +93,6 @@ public class CheckFish extends AppCompatActivity {
         textView = findViewById(R.id.textView);
         viewFinder = findViewById(R.id.viewFinder);
 
-        startCamera();
         restartBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -101,7 +100,7 @@ public class CheckFish extends AppCompatActivity {
             }
         });
 
-        
+
         cancelBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -114,9 +113,8 @@ public class CheckFish extends AppCompatActivity {
         });
 
         countBtn.setOnClickListener(v -> {
-            if (!timerRunning) {
                 startTimer();
-            }
+                startCamera();
         });
     }
 
@@ -231,9 +229,11 @@ public class CheckFish extends AppCompatActivity {
             } catch (ExecutionException | InterruptedException e) {
                 // Handle any errors (including InterruptedException)
                 Toast.makeText(this, "Error starting camera " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                Log.e("CameraStart", "Error starting camera", e);
             }
         }, ContextCompat.getMainExecutor(this));
     }
+
 
     private void bindCameraAnalysis(ProcessCameraProvider cameraProvider) {
         Preview preview = new Preview.Builder().build();
@@ -254,11 +254,21 @@ public class CheckFish extends AppCompatActivity {
             }
         });
 
-        CameraSelector cameraSelector = new CameraSelector.Builder()
-                .requireLensFacing(CameraSelector.LENS_FACING_BACK) // Use back camera
-                .build();
+        // Bind each use case separately to avoid conflicts
+        try {
+            // Unbind any previous use cases before rebinding
+            cameraProvider.unbindAll();
 
-        cameraProvider.bindToLifecycle((LifecycleOwner) this, cameraSelector, imageAnalysis, preview);
+            // Bind the preview use case
+            cameraProvider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, preview);
+
+            // Bind the image analysis use case
+            cameraProvider.bindToLifecycle(this, CameraSelector.DEFAULT_BACK_CAMERA, imageAnalysis);
+        } catch (Exception e) {
+            // Handle any errors during camera setup
+            Toast.makeText(this, "Error setting up camera: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+            Log.e("CameraSetup", "Error setting up camera", e);
+        }
     }
 
     private Bitmap toBitmap(ImageProxy image) {
@@ -329,27 +339,26 @@ public class CheckFish extends AppCompatActivity {
 
             // Update the UI directly as this method is called from the UI thread
             runOnUiThread(() -> {
-                if ("Fish".equals(classificationResult) && confidencePercentage >= 98) {
-                    //textView.setText("Fish Detected");
+                if ("Fish".equals(classificationResult) && confidencePercentage >= 98 && !isFishDetected) {
+                    textView.setText("Fish Detected");
                     result = "Fish Detected";
 
                     fishCount++;
 
-                    // Save data including fishCount
-                    saveData();
-                    Intent intent = new Intent(CheckFish.this, DetectorActivity.class);
-// Right after startActivity(intent); and before finish();
-                    // Optionally add flags or data to the intent
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    // Set the flag to true once a fish is detected
+                    isFishDetected = true;
+                    // Save data only when fishCount is greater than zero
+                    if (fishCount > 0) {
+                        saveData();
+                    }
+                }
 
-                    startActivity(intent);
-                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out); // Use your own animations
-                    stopCamera(); // Stop the camera here
-
-                    finish(); // Call finish to destroy this activity
-
+                // If fish is detected and the flag is set, keep showing "Fish Detected"
+                if (isFishDetected) {
+                    textView.setText("Fish Detected");
+                    result = "Fish Detected";
                 } else {
-                    //textView.setText("No Fish Detected");
+                    textView.setText("No Fish Detected");
                     result = "No Fish Detected";
                 }
             });
