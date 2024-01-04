@@ -7,15 +7,18 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.net.Uri;
+import android.util.TypedValue;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.EditText;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.finquant.Class.FishCountModel;
@@ -81,8 +84,9 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
             holder.hideExtraView();
         } else {
             // Show the extra view in the row layout
-            holder.showExtraView();
+            holder.showCards();
         }
+
         holder.itemView.setOnLongClickListener(new View.OnLongClickListener() {
             @Override
             public boolean onLongClick(View v) {
@@ -96,7 +100,7 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
     private void showOptionsDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Options");
-        builder.setItems(new CharSequence[]{"Count", "Rename Tank","Delete","Generate Manual PDF"}, new DialogInterface.OnClickListener() {
+        builder.setItems(new CharSequence[]{"Count", "Rename Tank", "Delete", "Generate Manual PDF"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -133,7 +137,6 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
             activity.finish();
         }
     }
-
 
 
     private void ShowgeneratedPdf(int position) {
@@ -243,14 +246,13 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
     }
 
 
-
     private void showDelete(final int position) {
         FishCountModel fishCountModel = fishCountList.get(position);
         String TankName = fishCountModel.getTankName();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Delete Tank?");
-        builder.setMessage("Are you sure you want to Archive Tank name: "+ TankName);
+        builder.setMessage("Are you sure you want to Archive Tank name: " + TankName);
 
         builder.setPositiveButton("Delete", new DialogInterface.OnClickListener() {
             @Override
@@ -426,58 +428,59 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         newTankNameInput.setText(oldTankName);
         builder.setView(newTankNameInput);
         builder.setPositiveButton("Rename", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialog, int which) {
-                        String newTankName = newTankNameInput.getText().toString().trim();
-                        if (!newTankName.isEmpty()) {
-                            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-                            if (currentUser != null) {
-                                // Get the old tank name
-                                FishCountModel fishCountModel = fishCountList.get(position);
-                                String oldTankName = fishCountModel.getTankName();
-                                String userId = currentUser.getUid();
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                String newTankName = newTankNameInput.getText().toString().trim();
+                if (!newTankName.isEmpty()) {
+                    FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+                    if (currentUser != null) {
+                        // Get the old tank name
+                        FishCountModel fishCountModel = fishCountList.get(position);
+                        String oldTankName = fishCountModel.getTankName();
+                        String userId = currentUser.getUid();
 
-                                // Create a Firebase reference to the "tank" node for the current user
-                                FirebaseDatabase database = FirebaseDatabase.getInstance();
-                                DatabaseReference tankRef = database.getReference("tank").child(userId);
+                        // Create a Firebase reference to the "tank" node for the current user
+                        FirebaseDatabase database = FirebaseDatabase.getInstance();
+                        DatabaseReference tankRef = database.getReference("tank").child(userId);
 
-                                // Query for the tank to rename based on oldTankName
-                                tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
-                                    @Override
-                                    public void onDataChange(DataSnapshot dataSnapshot) {
-                                        for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
-                                            // Update the "tankName" field with the newTankName
-                                            tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
-                                                @Override
-                                                public void onSuccess(Void aVoid) {
-                                                    // Successfully renamed the tank by tankName
-                                                    progressDialog.dismiss();
-                                                    notifyDataSetChanged();
-                                                    // Dismiss the progress dialog
+                        // Query for the tank to rename based on oldTankName
+                        tankRef.orderByChild("tankName").equalTo(oldTankName).addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                for (DataSnapshot tankSnapshot : dataSnapshot.getChildren()) {
+                                    // Update the "tankName" field with the newTankName
+                                    tankSnapshot.getRef().child("tankName").setValue(newTankName).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                        @Override
+                                        public void onSuccess(Void aVoid) {
+                                            // Successfully renamed the tank by tankName
+                                            progressDialog.dismiss();
+                                            notifyDataSetChanged();
+                                            // Dismiss the progress dialog
 
-                                                    //old tank name toast message to new tank name
-                                                    Toast.makeText(context, "Renamed Tank: " + oldTankName + " to " + newTankName, Toast.LENGTH_SHORT).show();
-                                                }
-                                            }).addOnFailureListener(new OnFailureListener() {
-                                                @Override
-                                                public void onFailure(@NonNull Exception e) {
-                                                    progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
-                                                    // Handle the error if the renaming fails
-                                                }
-                                            });
+                                            //old tank name toast message to new tank name
+                                            Toast.makeText(context, "Renamed Tank: " + oldTankName + " to " + newTankName, Toast.LENGTH_SHORT).show();
                                         }
-                                    }
-                                 @Override
-                                 public void onCancelled(DatabaseError databaseError) {
-                                 progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
-                                     // Handle any errors or onCancelled events
-                             }
-                                 });
-                            } else {
-                                progressDialog.dismiss(); // Dismiss the progress dialog if the user is not authenticated
-                                Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show();
+                                    }).addOnFailureListener(new OnFailureListener() {
+                                        @Override
+                                        public void onFailure(@NonNull Exception e) {
+                                            progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                                            // Handle the error if the renaming fails
+                                        }
+                                    });
+                                }
                             }
-                        } else {
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                progressDialog.dismiss(); // Dismiss the progress dialog in case of an error
+                                // Handle any errors or onCancelled events
+                            }
+                        });
+                    } else {
+                        progressDialog.dismiss(); // Dismiss the progress dialog if the user is not authenticated
+                        Toast.makeText(context, "User not authenticated", Toast.LENGTH_SHORT).show();
+                    }
+                } else {
                     progressDialog.dismiss(); // Dismiss the progress dialog if renaming is not performed
                     Toast.makeText(context, "New tank name is required", Toast.LENGTH_SHORT).show();
                 }
@@ -515,12 +518,17 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         private TextView fishCountTextView;
         private TextView timestampTextView;
         private TextView tankNameTextView;
+        private RelativeLayout relativeLayout;
         private View extraView;
+        private CardView grid;
+
         public ViewHolder(@NonNull View itemView) {
             super(itemView);
+            relativeLayout = itemView.findViewById(R.id.rl);
             fishCountTextView = itemView.findViewById(R.id.fishCountTextView);
             timestampTextView = itemView.findViewById(R.id.dateAndTimeTextView);
             tankNameTextView = itemView.findViewById(R.id.tankNameTextView);
+            grid = itemView.findViewById(R.id.cards);
             extraView = itemView.findViewById(R.id.extra_view);
         }
 
@@ -535,12 +543,27 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
         public void setTankName(String tankName) {
             tankNameTextView.setText(tankName);
         }
+
         public void hideExtraView() {
-            extraView.setVisibility(View.VISIBLE);
+            ViewGroup.LayoutParams extraViewParams = grid.getLayoutParams();
+            extraViewParams.width = ViewGroup.LayoutParams.MATCH_PARENT;
+            extraView.setVisibility(View.VISIBLE); // To hide extraView
         }
 
-        public void showExtraView() {
+        public void showCards() {
+            // Adjust the width of the CardView to 130dp
+            ViewGroup.LayoutParams gridParams = grid.getLayoutParams();
+            int widthInDp = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 150, itemView.getResources().getDisplayMetrics());
+            gridParams.width = widthInDp;
+            grid.setLayoutParams(gridParams);
+            // Hide extraView
             extraView.setVisibility(View.GONE);
+            // Make the CardView center horizontally within its parent RelativeLayout
+            RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) grid.getLayoutParams();
+            layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL, RelativeLayout.TRUE);
+            grid.setLayoutParams(layoutParams);
+            grid.setVisibility(View.VISIBLE);
         }
+
     }
 }

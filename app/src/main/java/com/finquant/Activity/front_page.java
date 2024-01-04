@@ -2,7 +2,9 @@ package com.finquant.Activity;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Bundle;
@@ -72,7 +74,8 @@ public class front_page extends AppCompatActivity {
     NavigationView navigationView;
     ActionBarDrawerToggle drawerToggle;
 
-
+    ImageButton rowViewButton;
+    ImageButton gridViewButton;
 
     private DatabaseReference databaseReference;
     private static final String CONFIRMED ="CONFIRMED";
@@ -84,7 +87,8 @@ public class front_page extends AppCompatActivity {
     FloatingActionButton upload;
     private boolean isRowView = true;
 
-
+    private static final String PREF_LAYOUT_TYPE = "layout_type";
+    private SharedPreferences sharedPreferences;
     @Override
     public boolean onOptionsItemSelected(@NonNull MenuItem item) {
         if (drawerToggle.onOptionsItemSelected(item)) {
@@ -115,16 +119,23 @@ public class front_page extends AppCompatActivity {
         EditText searchEditText = findViewById(R.id.search);
         recyclerView = findViewById(R.id.recyclerTank);
         addTankbtn = findViewById(R.id.addtank);
-        ImageButton rowViewButton = findViewById(R.id.rowView);
-        ImageButton gridViewButton = findViewById(R.id.gridView);
+        rowViewButton = findViewById(R.id.rowView);
+        gridViewButton = findViewById(R.id.gridView);
 
+        sharedPreferences = getSharedPreferences("MyPrefs", Context.MODE_PRIVATE);
 
+        // Retrieve the saved layout preference, defaulting to true (row view) if not found
+        boolean savedIsRowView = sharedPreferences.getBoolean(PREF_LAYOUT_TYPE, true);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
         databaseReference = FirebaseDatabase.getInstance().getReference("tank");
         fishCountList = new ArrayList<>();
         boolean initialLayoutIsRowView = true;
+        // Initialize the adapter and set it to the RecyclerView
         adapter = new FishCountAdapter(this, fishCountList, initialLayoutIsRowView);
         recyclerView.setAdapter(adapter);
+        isRowView = savedIsRowView;
+        setLayout(isRowView);
+
 
 
         FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
@@ -259,6 +270,7 @@ public class front_page extends AppCompatActivity {
             public void onClick(View view) {
                 isRowView = true; // Set flag for row view
                 setLayout(isRowView);
+                saveLayoutPreference(isRowView);
                 // Set background drawable for row view button
                 rowViewButton.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.gray_btn));
                 // Reset background drawable for grid view button
@@ -271,6 +283,7 @@ public class front_page extends AppCompatActivity {
             public void onClick(View view) {
                 isRowView = false; // Set flag for grid view
                 setLayout(isRowView);
+                saveLayoutPreference(isRowView);
                 // Set background drawable for grid view button
                 gridViewButton.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.gray_btn));
                 // Reset background drawable for row view button
@@ -366,6 +379,11 @@ public class front_page extends AppCompatActivity {
 
     }
 
+    private void saveLayoutPreference(boolean isRowView) {
+        SharedPreferences.Editor editor = sharedPreferences.edit();
+        editor.putBoolean(PREF_LAYOUT_TYPE, isRowView);
+        editor.apply();
+    }
     private void uploadDataToFirebaseStorage(byte[] data, String storagePath) {
         // Get a reference to your Firebase Storage
         StorageReference storageRef = FirebaseStorage.getInstance().getReference();
@@ -412,14 +430,19 @@ public class front_page extends AppCompatActivity {
 
     private void setLayout(boolean isRowView) {
         RecyclerView.LayoutManager layoutManager;
+
         if (isRowView) {
             layoutManager = new LinearLayoutManager(this);
+            rowViewButton.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.gray_btn));
         } else {
-            layoutManager = new GridLayoutManager(this, 2); // Set the span count as needed
+            layoutManager = new GridLayoutManager(this, 2);
+            gridViewButton.setBackground(ContextCompat.getDrawable(getApplicationContext(), R.drawable.gray_btn));
         }
+
         recyclerView.setLayoutManager(layoutManager);
         adapter.setLayout(isRowView); // Pass the layout type to the adapter
     }
+
 
     private void filterData(String searchText) {
         List<FishCountModel> filteredList = new ArrayList<>();

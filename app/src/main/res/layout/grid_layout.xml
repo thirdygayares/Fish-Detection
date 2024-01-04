@@ -1,14 +1,30 @@
-<RelativeLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
+    android:layout_marginBottom="10dp"
+    android:id="@+id/rl"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_marginTop="10dp">
+<androidx.cardview.widget.CardView
+    android:layout_width="wrap_content"
+    android:layout_marginLeft="10dp"
+    android:layout_marginTop="5dp"
+    android:layout_marginBottom="5dp"
+    android:layout_marginRight="10dp"
+    android:id="@+id/cards"
+    android:layout_height="wrap_content"
+    app:cardCornerRadius="5dp"
+    app:cardElevation="5dp">
 
+<RelativeLayout
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content">
     <TextView
         android:id="@+id/tankNameTextView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
+        android:layout_marginStart="5dp"
         android:fontFamily="@font/century_gothic"
         android:text="Tank Name:"
         android:textSize="12sp"
@@ -19,6 +35,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
+        android:layout_marginStart="5dp"
         android:fontFamily="@font/century_gothic"
         android:layout_below="@+id/tankNameTextView"
         android:text="Date and Time:"
@@ -30,6 +47,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textStyle="bold"
+        android:layout_marginStart="5dp"
         android:fontFamily="@font/century_gothic"
         android:layout_below="@+id/dateAndTimeTextView"
         android:text="Fish Count:"
@@ -43,4 +61,6 @@
         android:layout_marginTop="5dp"
         android:layout_below="@id/fishCountTextView"
         android:background="@color/black" />
+</RelativeLayout>
+</androidx.cardview.widget.CardView>
 </RelativeLayout>
