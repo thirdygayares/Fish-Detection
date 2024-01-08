@@ -280,19 +280,29 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                             Log.d("Detection", "Objects detected: " + detectedObjects + " in tank: " + finalTankName);
                         }
                     });
-                } else {
+                } else if (detectedObjects > 0 && tankName == null) {
+                    // This block is executed when there are detected objects but no tankName
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
                             // Create and show a dialog for the case when tankName is null
                             Dialog_utils nullTankDialog = new Dialog_utils();
-                            nullTankDialog.showFishCountDialog(detectedObjects,DetectorActivity.this);
-                            Log.d("Detection", "No tank name provided or no detected objects.");
+                            nullTankDialog.showFishCountDialog(detectedObjects, DetectorActivity.this);
+                            Log.d("Detection", "No tank name provided.");
                         }
                     });
-
+                } else {
+                    // Handle the case when no objects are detected
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Toast.makeText(getApplicationContext(),"No fish Detected",Toast.LENGTH_SHORT).show();
+                            Log.d("Detection", "No objects detected.");
+                        }
+                    });
                 }
-        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
+
+                cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
                         final Canvas canvas = new Canvas(cropCopyBitmap);
                         final Paint paint = new Paint();
                         paint.setColor(Color.RED);

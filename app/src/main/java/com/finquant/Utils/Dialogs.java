@@ -38,9 +38,13 @@ public class Dialogs {
                 .setExpanded(false)
                 .create();
 
-        View dialogView = dialog.getHolderView(); // Get the dialog view to access its components
+        View dialogView = dialog.getHolderView();// Get the dialog view to access its components
         AppCompatButton yesButton = dialogView.findViewById(R.id.open);
         AppCompatButton noButton = dialogView.findViewById(R.id.cancel);
+        TextView countText = dialogView.findViewById(R.id.fishCountTextView);
+        TextView tankNAME = dialogView.findViewById(R.id.TankNAME);
+        tankNAME.setText("tank name: "+tankName);
+        countText.setText(String.valueOf("fish count is: "+fishCount));
 
 
         yesButton.setOnClickListener(v -> {
