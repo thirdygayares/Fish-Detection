@@ -62,14 +62,12 @@ public class CheckFish extends AppCompatActivity {
     private TextView textView,timeText; // For displaying classification result
     private PreviewView viewFinder;
     private int imageSize = 224;
-    private int fishCount = 0;
     private static final long START_TIME = 10000; // Initial time in milliseconds
     private CountDownTimer countDownTimer;
     private boolean timerRunning;
     private long timeLeftInMillis = START_TIME;
-
+    private  TextView tankNameTextView;
     String result = "";
-    AppCompatButton countBtn,restartBtn,cancelBtn;
     ProcessCameraProvider cameraProvider;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -77,45 +75,21 @@ public class CheckFish extends AppCompatActivity {
         requestWindowFeature(Window.FEATURE_NO_TITLE);
         getWindow().setFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN, WindowManager.LayoutParams.FLAG_FULLSCREEN);
         setContentView(R.layout.activity_check_fish);
+        startCamera();
         Intent intent = getIntent();
         // Check if the intent has extra data with the key "tankName"
         if (intent != null && intent.hasExtra("tankName")) {
             // Get the tank name from the intent
             String tankName = intent.getStringExtra("tankName");
-            TextView tankNameTextView = findViewById(R.id.tankName);
-            tankNameTextView.setText("Tank name: "+tankName);
+           tankNameTextView = findViewById(R.id.tankName);
+            tankNameTextView.setText("Tank name: " + tankName);
         }
         timeText = findViewById(R.id.Timer);
-        countBtn = findViewById(R.id.count_btn);
-        restartBtn = findViewById(R.id.restart_button);
-        cancelBtn = findViewById(R.id.cancels);
+
 
         textView = findViewById(R.id.textView);
         viewFinder = findViewById(R.id.viewFinder);
 
-        restartBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                restartActivity();
-            }
-        });
-
-
-        cancelBtn.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Intent cancel = new Intent(getApplicationContext(),front_page.class);
-                startActivity(cancel);
-                finish();
-                overridePendingTransition(0,0);
-
-            }
-        });
-
-        countBtn.setOnClickListener(v -> {
-                startTimer();
-                startCamera();
-        });
     }
 
     public void restartActivity() {
@@ -154,66 +128,12 @@ public class CheckFish extends AppCompatActivity {
             public void onFinish() {
                 timerRunning = false;
                 timeText.setText("0");
-                //savedData from the tankName
-                saveData();
             }
         }.start();
 
         timerRunning = true;
     }
 
-
-    private void saveData() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Confirmation");
-        builder.setMessage("Do you want to save the fish count?");
-
-        builder.setPositiveButton("Yes", (dialog, which) -> {
-            String tankName = getIntent().getStringExtra("tankName");
-
-            SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy HH:mm:ss", Locale.getDefault());
-            String currentDateTime = dateFormat.format(new Date());
-            FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
-
-            if (currentUser != null) {
-                String userId = currentUser.getUid();
-                DatabaseReference userTanksRef = FirebaseDatabase.getInstance().getReference().child("tank").child(userId);
-
-                userTanksRef.orderByChild("tankName").equalTo(tankName).addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.exists()) {
-                            for (DataSnapshot snapshot : dataSnapshot.getChildren()) {
-                                DatabaseReference existingFishCountRef = snapshot.getRef();
-                                existingFishCountRef.child("fishCount").setValue(fishCount);
-                                existingFishCountRef.child("timeStamp").setValue(currentDateTime);
-                                Toast.makeText(CheckFish.this, "Data updated successfully!", Toast.LENGTH_SHORT).show();
-                            }
-                        } else {
-                            DatabaseReference newFishCountRef = userTanksRef.push();
-                            newFishCountRef.child("tankName").setValue(tankName);
-                            newFishCountRef.child("fishCount").setValue(fishCount);
-                            newFishCountRef.child("timeStamp").setValue(currentDateTime);
-                            Toast.makeText(CheckFish.this, "New data saved successfully!", Toast.LENGTH_SHORT).show();
-                        }
-                    }
-                    @Override
-                    public void onCancelled(@NonNull DatabaseError databaseError) {
-                        Toast.makeText(CheckFish.this, "Database error: " + databaseError.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
-            } else {
-                Toast.makeText(this, "User not authenticated", Toast.LENGTH_SHORT).show();
-            }
-        });
-
-        builder.setNegativeButton("No", (dialog, which) -> {
-            // Do nothing or provide feedback to the user about not saving the data
-            Toast.makeText(this, "Data not saved", Toast.LENGTH_SHORT).show();
-        });
-
-        builder.show();
-    }
 
     private void updateTimer() {
         int seconds = (int) (timeLeftInMillis / 1000);
@@ -339,26 +259,22 @@ public class CheckFish extends AppCompatActivity {
 
             // Update the UI directly as this method is called from the UI thread
             runOnUiThread(() -> {
-                if ("Fish".equals(classificationResult) && confidencePercentage >= 98 && !isFishDetected) {
-                    textView.setText("Fish Detected");
+                if ("Fish".equals(classificationResult) && confidencePercentage >= 98) {
+                    //textView.setText("Fish Detected");
                     result = "Fish Detected";
 
-                    fishCount++;
+                    Intent intent = new Intent(CheckFish.this, DetectorActivity.class);
+                    String tankName = tankNameTextView.getText().toString();
+                    intent.putExtra("tankName", tankName);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NO_ANIMATION);
+                    startActivity(intent);
+                    overridePendingTransition(R.anim.fade_in, R.anim.fade_out);
+                    stopCamera();
 
-                    // Set the flag to true once a fish is detected
-                    isFishDetected = true;
-                    // Save data only when fishCount is greater than zero
-                    if (fishCount > 0) {
-                        saveData();
-                    }
-                }
+                    finish();
 
-                // If fish is detected and the flag is set, keep showing "Fish Detected"
-                if (isFishDetected) {
-                    textView.setText("Fish Detected");
-                    result = "Fish Detected";
                 } else {
-                    textView.setText("No Fish Detected");
+                    //textView.setText("No Fish Detected");
                     result = "No Fish Detected";
                 }
             });

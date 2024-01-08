@@ -39,6 +39,7 @@ import com.finquant.Adapter.FishCountAdapter;
 import com.finquant.Class.FishCountModel;
 import com.finquant.Utils.Dialog_utils;
 import com.finquant.Yolov5.CheckFish2;
+import com.finquant.Yolov5.DetectorActivity;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -166,7 +167,7 @@ public class front_page extends AppCompatActivity {
         countsBtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent count = new Intent(getApplicationContext(), CheckFish2.class);
+                Intent count = new Intent(getApplicationContext(), DetectorActivity.class);
                 startActivity(count);
                 finish();
                 overridePendingTransition(0,0);

@@ -24,6 +24,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.finquant.Class.FishCountModel;
 import com.finquant.Yolov5.CameraActivity;
 import com.finquant.Yolov5.CheckFish;
+import com.finquant.Yolov5.DetectorActivity;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.auth.FirebaseAuth;
@@ -126,7 +127,7 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
     private void startCameraActivity(int position) {
         FishCountModel fishCountModel = fishCountList.get(position);
         String tankName = fishCountModel.getTankName();
-        Intent intent = new Intent(context, CheckFish.class);
+        Intent intent = new Intent(context, DetectorActivity.class);
         // Pass the tank name as an extra to the intent
         intent.putExtra("tankName", tankName);
         // Start the CameraActivity

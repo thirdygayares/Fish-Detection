@@ -16,6 +16,7 @@
 
 package com.finquant.Yolov5;
 
+import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.Bitmap.Config;
 import android.graphics.Canvas;
@@ -35,6 +36,9 @@ import android.util.Size;
 import android.util.TypedValue;
 import android.widget.Toast;
 
+import com.finquant.Activity.front_page;
+import com.finquant.Utils.Dialog_utils;
+import com.finquant.Utils.Dialogs;
 import com.finquant.Yolov5.customview.AutoFitTextureView;
 import com.finquant.Yolov5.tflite.Classifier.Recognition;
 
@@ -99,6 +103,8 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
         borderedText.setTypeface(Typeface.MONOSPACE);
 
         tracker = new MultiBoxTracker(this);
+
+
 
         final int modelIndex = modelView.getCheckedItemPosition();
         final String modelString = modelStrings.get(modelIndex);
@@ -248,18 +254,45 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
             ImageUtils.saveBitmap(croppedBitmap);
         }
 
-        runInBackground(
-                new Runnable() {
-                    @Override
-                    public void run() {
-                        LOGGER.i("Running detection on image " + currTimestamp);
-                        final long startTime = SystemClock.uptimeMillis();
-                        final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
-                        lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
+        runInBackground(new Runnable() {
+            @Override
+            public void run() {
+                LOGGER.i("Running detection on image " + currTimestamp);
+                final long startTime = SystemClock.uptimeMillis();
+                final List<Classifier.Recognition> results = detector.recognizeImage(croppedBitmap);
+                lastProcessingTimeMs = SystemClock.uptimeMillis() - startTime;
 
-                        Log.e("CHECK", "run: " + results.size());
+                Log.e("CHECK", "run: " + results.size());
 
-                        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
+                String tankName = null;
+                Bundle extras = getIntent().getExtras();
+                if (extras != null) {
+                    tankName = extras.getString("tankName");
+                }
+                int detectedObjects = results.size();
+                if (detectedObjects > 0 && tankName != null) {
+                    String finalTankName = tankName;
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            Dialogs dialogs = new Dialogs();
+                            dialogs.showDialog(DetectorActivity.this, finalTankName, detectedObjects);
+                            Log.d("Detection", "Objects detected: " + detectedObjects + " in tank: " + finalTankName);
+                        }
+                    });
+                } else {
+                    runOnUiThread(new Runnable() {
+                        @Override
+                        public void run() {
+                            // Create and show a dialog for the case when tankName is null
+                            Dialog_utils nullTankDialog = new Dialog_utils();
+                            nullTankDialog.showFishCountDialog(detectedObjects,DetectorActivity.this);
+                            Log.d("Detection", "No tank name provided or no detected objects.");
+                        }
+                    });
+
+                }
+        cropCopyBitmap = Bitmap.createBitmap(croppedBitmap);
                         final Canvas canvas = new Canvas(cropCopyBitmap);
                         final Paint paint = new Paint();
                         paint.setColor(Color.RED);
@@ -334,6 +367,13 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
 
 
 
+    public void onBackPressed(){
+        Intent i = new Intent(getApplicationContext(), front_page.class);
+        startActivity(i);
+        finish();
+        overridePendingTransition(0,0);
+        super.onBackPressed();
+    }
 
 
 }

@@ -24,13 +24,17 @@ import com.finquant.Yolov5.CheckFish;
 import com.finquant.Yolov5.DetectorActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.m.motion_2.R;
 import com.orhanobut.dialogplus.DialogPlus;
+import com.orhanobut.dialogplus.Holder;
 import com.orhanobut.dialogplus.OnClickListener;
 import com.orhanobut.dialogplus.OnDismissListener;
 import com.orhanobut.dialogplus.ViewHolder;
+
+import org.checkerframework.checker.nullness.qual.NonNull;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -55,7 +59,7 @@ public class Dialog_utils {
                 .setCancelable(false)
                 .setExpanded(false)
                 .setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)
-                .setContentHeight(ViewGroup.LayoutParams.MATCH_PARENT)
+                .setContentHeight(ViewGroup.LayoutParams.WRAP_CONTENT)
                 .setOnClickListener(new OnClickListener() {
                     @Override
                     public void onClick(DialogPlus dialog, View view) {
@@ -98,12 +102,8 @@ public class Dialog_utils {
                             activity.overridePendingTransition(0, 0);
                             countAct.finishActivity();
                         } else if (view.getId() == R.id.cancelButton) {
-                            Intent i = new Intent(activity.getApplicationContext(), front_page.class);
-                            countAct.reinitializeCamera();
-                            countAct.onCameraViewStopped();
-                            activity.startActivity(i);
-                            activity.overridePendingTransition(0, 0);
-                            countAct.finishActivity();                        }
+                            dialog.dismiss();
+                        }
                     }
                 })
                 .create();
