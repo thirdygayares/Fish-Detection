@@ -55,7 +55,7 @@ public class Dialog_utils {
                 .setContentHolder(new ViewHolder(contentView))
                 .setHeader(R.layout.dialog_header)
                 .setFooter(R.layout.dialog_footer)
-                .setGravity(Gravity.CENTER)
+                .setGravity(Gravity.BOTTOM)
                 .setCancelable(false)
                 .setExpanded(false)
                 .setContentWidth(ViewGroup.LayoutParams.MATCH_PARENT)

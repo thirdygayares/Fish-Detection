@@ -33,7 +33,7 @@ public class Dialogs {
         Holder holder = new ViewHolder(R.layout.dialog_layouts23);
         DialogPlus dialog = DialogPlus.newDialog(activity)
                 .setContentHolder(holder)
-                .setGravity(Gravity.CENTER)
+                .setGravity(Gravity.BOTTOM)
                 .setCancelable(true)
                 .setExpanded(false)
                 .create();

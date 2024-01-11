@@ -5,7 +5,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:orientation="vertical"
     android:background="@color/blue1"
-    android:padding="16dp">
+    android:padding="10dp">
 
 
     <TextView
@@ -15,7 +15,7 @@
         android:layout_marginStart="10dp"
         android:layout_marginTop="10dp"
         android:fontFamily="@font/century_gothic"
-        android:textSize="15dp"
+        android:textSize="15sp"
         android:textStyle="bold"
         android:text="Please enter Tank Name"/>
 
@@ -41,7 +41,7 @@
         android:fontFamily="@font/century_gothic"
         android:layout_height="wrap_content"
         android:text="27"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:layout_marginBottom="16dp" />
       </LinearLayout>
     </androidx.cardview.widget.CardView>
@@ -59,6 +59,7 @@
         android:layout_height="50dp"
         android:hint="Enter Tank Name"
         android:textStyle="bold"
+        android:textSize="15sp"
         android:fontFamily="@font/century_gothic"
         android:background="@drawable/edittext_background"
         android:padding="8dp"
