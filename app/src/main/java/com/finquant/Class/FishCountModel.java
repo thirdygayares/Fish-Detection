@@ -1,6 +1,8 @@
 package com.finquant.Class;
 
 public class FishCountModel {
+
+    private String key;
     private int fishCount;
     private String timeStamp;
     private String tankName;
@@ -15,6 +17,10 @@ public class FishCountModel {
         this.timeStamp = timeStamp;
         this.tankName = tankName;
         this.tankKey = tankKey;
+    }
+
+    public String getKey() {
+        return key;
     }
 
     public int getFishCount() {

@@ -65,6 +65,7 @@ public class Dialogs {
                                 existingFishCountRef.child("fishCount").setValue(fishCount);
                                 existingFishCountRef.child("timeStamp").setValue(currentDateTime);
                                 Toast.makeText(activity, "Data updated successfully!", Toast.LENGTH_SHORT).show();
+                                saveLogs(userId, tankName, fishCount, currentDateTime);
                             }
                         } else {
                             DatabaseReference newFishCountRef = userTanksRef.push();
@@ -72,6 +73,7 @@ public class Dialogs {
                             newFishCountRef.child("fishCount").setValue(fishCount);
                             newFishCountRef.child("timeStamp").setValue(currentDateTime);
                             Toast.makeText(activity, "New data saved successfully!", Toast.LENGTH_SHORT).show();
+                            saveLogs(userId, tankName, fishCount, currentDateTime);
                         }
                     }
 
@@ -96,4 +98,13 @@ public class Dialogs {
         dialog.show();
     }
 
+    private void saveLogs(String userId, String tankName, int fishCount, String timestamp) {
+        DatabaseReference tankLogsRef = FirebaseDatabase.getInstance().getReference().child("tankLogs").child(userId);
+        DatabaseReference logEntryRef = tankLogsRef.push();
+
+        // Set the log entry details
+        logEntryRef.child("tankName").setValue(tankName);
+        logEntryRef.child("fishCount").setValue(fishCount);
+        logEntryRef.child("timeStamp").setValue(timestamp);
+    }
 }

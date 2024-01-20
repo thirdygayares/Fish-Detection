@@ -306,9 +306,9 @@ public class DetectorActivity extends CameraActivity implements OnImageAvailable
                         final Canvas canvas = new Canvas(cropCopyBitmap);
                         final Paint paint = new Paint();
                         paint.setColor(Color.RED);
-                        paint.setStyle(Style.STROKE);
-                        paint.setStrokeWidth(2.0f);
+                paint.setStrokeWidth(2.0f);
 
+                paint.setStyle(Style.STROKE);
                         float minimumConfidence = MINIMUM_CONFIDENCE_TF_OD_API;
                         switch (MODE) {
                             case TF_OD_API:

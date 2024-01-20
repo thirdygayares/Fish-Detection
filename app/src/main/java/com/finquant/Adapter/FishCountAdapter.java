@@ -21,6 +21,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.finquant.Activity.table_logs;
 import com.finquant.Class.FishCountModel;
 import com.finquant.Yolov5.CameraActivity;
 import com.finquant.Yolov5.CheckFish;
@@ -101,7 +102,7 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
     private void showOptionsDialog(int position) {
         AlertDialog.Builder builder = new AlertDialog.Builder(context);
         builder.setTitle("Options");
-        builder.setItems(new CharSequence[]{"Count", "Rename Tank", "Delete", "Generate Manual PDF"}, new DialogInterface.OnClickListener() {
+        builder.setItems(new CharSequence[]{"Count", "Rename Tank", "Delete", "Generate Manual PDF","Logs"}, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
                 switch (which) {
@@ -117,11 +118,29 @@ public class FishCountAdapter extends RecyclerView.Adapter<FishCountAdapter.View
                     case 3:
                         ShowgeneratedPdf(position);
                         break;
+                    case 4:
+                        logs(position);
+                        break;
                 }
             }
         });
 
         builder.create().show();
+    }
+
+    private void logs(int position) {
+        FishCountModel fishCountModel = fishCountList.get(position);
+        String tankName = fishCountModel.getTankName();
+        Intent intent = new Intent(context, table_logs.class);
+        // Pass the tank name as an extra to the intent
+        intent.putExtra("tankName", tankName);
+        // Start the CameraActivity
+        context.startActivity(intent);
+        if (context instanceof Activity) {
+            Activity activity = (Activity) context;
+            activity.overridePendingTransition(0, 0);
+            activity.finish();
+        }
     }
 
     private void startCameraActivity(int position) {

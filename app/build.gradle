@@ -64,5 +64,6 @@ dependencies {
     implementation "androidx.camera:camera-lifecycle:1.0.0-rc01"
     implementation "androidx.camera:camera-view:1.0.0-alpha20"
     implementation 'org.tensorflow:tensorflow-lite:0.0.0-nightly'
+    implementation 'com.github.ISchwarz23:SortableTableView:2.8.1'
 
 }
