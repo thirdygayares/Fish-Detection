@@ -65,6 +65,8 @@ import java.nio.file.Paths;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 import java.util.Locale;
@@ -303,7 +305,6 @@ public class front_page extends AppCompatActivity {
         searchEditText.addTextChangedListener(new TextWatcher() {
             @Override
             public void beforeTextChanged(CharSequence charSequence, int i, int i1, int i2) {
-                // Not needed for this implementation
             }
 
             @Override
@@ -314,7 +315,6 @@ public class front_page extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable editable) {
-                // Not needed for this implementation
             }
         });
 
@@ -326,6 +326,28 @@ public class front_page extends AppCompatActivity {
                     FishCountModel fishCountModel = snapshot.getValue(FishCountModel.class);
                     fishCountList.add(fishCountModel);
                 }
+
+                // Sort the fishCountList by timestamp in descending order
+                Collections.sort(fishCountList, new Comparator<FishCountModel>() {
+                    @Override
+                    public int compare(FishCountModel fishCountModel1, FishCountModel fishCountModel2) {
+                        // Handle null values for timestamps
+                        String timestamp1 = fishCountModel1.getTimestamp();
+                        String timestamp2 = fishCountModel2.getTimestamp();
+
+                        if (timestamp1 == null && timestamp2 == null) {
+                            return 0; // Both timestamps are null, consider them equal
+                        } else if (timestamp1 == null) {
+                            return 1; // Non-null timestamp is considered greater than null timestamp
+                        } else if (timestamp2 == null) {
+                            return -1; // Non-null timestamp is considered greater than null timestamp
+                        }
+
+                        // Compare timestamps in reverse order (latest first)
+                        return timestamp2.compareTo(timestamp1);
+                    }
+                });
+
                 adapter.notifyDataSetChanged();
             }
 
@@ -359,7 +381,7 @@ public class front_page extends AppCompatActivity {
                 // Handle the case when nothing is selected
             }
         });
-        
+
         databaseReference.addValueEventListener(new ValueEventListener() {
             @Override
             public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
@@ -368,6 +390,28 @@ public class front_page extends AppCompatActivity {
                     FishCountModel fishCountModel = snapshot.getValue(FishCountModel.class);
                     fishCountList.add(fishCountModel);
                 }
+                // Sort the fishCountList by timestamp in descending order
+                Collections.sort(fishCountList, new Comparator<FishCountModel>() {
+                    @Override
+                    public int compare(FishCountModel fishCountModel1, FishCountModel fishCountModel2) {
+                        // Handle null values for timestamps
+                        String timestamp1 = fishCountModel1.getTimestamp();
+                        String timestamp2 = fishCountModel2.getTimestamp();
+
+                        if (timestamp1 == null && timestamp2 == null) {
+                            return 0; // Both timestamps are null, consider them equal
+                        } else if (timestamp1 == null) {
+                            return 1; // Non-null timestamp is considered greater than null timestamp
+                        } else if (timestamp2 == null) {
+                            return -1; // Non-null timestamp is considered greater than null timestamp
+                        }
+
+                        // Compare timestamps in reverse order (latest first)
+                        return timestamp2.compareTo(timestamp1);
+                    }
+                });
+
+
                 adapter.notifyDataSetChanged();
             }
 
@@ -376,7 +420,7 @@ public class front_page extends AppCompatActivity {
                 // Handle the error
             }
         });
-        
+
 
     }
 
@@ -453,10 +497,31 @@ public class front_page extends AppCompatActivity {
                 filteredList.add(fishCountModel);
             }
         }
+
+        // Sort the filtered list by timestamp in descending order
+        Collections.sort(fishCountList, new Comparator<FishCountModel>() {
+            @Override
+            public int compare(FishCountModel fishCountModel1, FishCountModel fishCountModel2) {
+                // Handle null values for timestamps
+                String timestamp1 = fishCountModel1.getTimestamp();
+                String timestamp2 = fishCountModel2.getTimestamp();
+
+                if (timestamp1 == null && timestamp2 == null) {
+                    return 0; // Both timestamps are null, consider them equal
+                } else if (timestamp1 == null) {
+                    return 1; // Non-null timestamp is considered greater than null timestamp
+                } else if (timestamp2 == null) {
+                    return -1; // Non-null timestamp is considered greater than null timestamp
+                }
+
+                // Compare timestamps in reverse order (latest first)
+                return timestamp2.compareTo(timestamp1);
+            }
+        });
+
         adapter.notifyDataSetChanged();
         adapter.filterList(filteredList);
     }
-
 
     private void filterDataByDay(String selectedDayOfWeek) {
         List<FishCountModel> filteredList = new ArrayList<>();

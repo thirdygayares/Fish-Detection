@@ -179,7 +179,7 @@ public class Dialog_utils {
 
 
     public static void showFishCountDialog2(final int fishCount, Activity activity) {
-        View contentView = activity.getLayoutInflater().inflate(R.layout.custom_fish_count_dialog, null);
+        View contentView = activity.getLayoutInflater().inflate(R.layout.custom_fish_count_dialog2, null);
         TextView fishCountTextView = contentView.findViewById(R.id.fishCountTextView);
         EditText tankNameInput = contentView.findViewById(R.id.tankNameInput);
         fishCountTextView.setText(String.valueOf(fishCount));
